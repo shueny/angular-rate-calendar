@@ -87,32 +87,53 @@ test.describe('Rate Calendar', () => {
     }).toPass({ timeout: 5000 });
   });
 
-  test('should navigate months and reload holidays', async ({ page }) => {
+  test('should navigate to the next month and back', async ({ page }) => {
     const header = page.locator('.calendar-header h2');
-    const initialMonth = await header.textContent();
+    await expect(header).not.toBeEmpty();
+    const initialMonth = (await header.textContent())!;
 
     await page.click('.nav-btn >> text=→');
-    const nextMonth = await header.textContent();
-    expect(nextMonth).not.toBe(initialMonth);
+    await expect(header).not.toHaveText(initialMonth);
 
     await page.click('.nav-btn >> text=←');
-    await expect(header).toHaveText(initialMonth!);
+    await expect(header).toHaveText(initialMonth);
   });
 
   test('should show price breakdown when clicking a day', async ({ page }) => {
     const priceDetail = page.locator('.price-detail');
     await expect(priceDetail).not.toBeVisible();
 
-    const dayCell = page.locator('.day-cell:not(.out-of-month)').first();
+    const dayCell = page.locator('.day-cell.weekend:not(.out-of-month)').first();
     await dayCell.click();
 
     await expect(priceDetail).toBeVisible();
-    await expect(priceDetail.locator('.breakdown-row')).toHaveCount(
-      await priceDetail.locator('.breakdown-row').count(),
-    );
+    await expect(priceDetail.locator('.breakdown-row').first()).toContainText('Base Rate');
+    await expect(
+      priceDetail.locator('.breakdown-row.adjustment', { hasText: 'Weekend rate' }),
+    ).toHaveCount(1);
     await expect(priceDetail.locator('.total')).toContainText('Final Rate');
 
     await dayCell.click();
     await expect(priceDetail).not.toBeVisible();
+  });
+
+  test('should open the learning notes page from the header link', async ({ page }) => {
+    await page.click('.learning-link');
+
+    await expect(page).toHaveURL(/\/learning\/$/);
+    await expect(page).toHaveTitle('從 React 到 Angular');
+    await expect(page.locator('h1')).toContainText('Angular');
+    await expect(page.locator('#sgSvg .node')).toHaveCount(9);
+  });
+
+  test('should show an error and keep base prices when the holiday API fails', async ({ page }) => {
+    await page.route('**/api/v3/PublicHolidays/**', (route) =>
+      route.fulfill({ status: 500, body: 'Internal Server Error' }),
+    );
+    await page.reload();
+
+    await expect(page.locator('.error-bar')).toContainText('HTTP 500');
+    await expect(page.locator('.day-cell')).toHaveCount(42);
+    await expect(page.locator('.day-cell.holiday')).toHaveCount(0);
   });
 });

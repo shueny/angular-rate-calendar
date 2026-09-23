@@ -1,13 +1,16 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Holiday, NagerHoliday } from './holiday.model';
-import { catchError, finalize, of, tap } from 'rxjs';
+import { TimeoutError, catchError, finalize, of, tap, timeout } from 'rxjs';
+
+const REQUEST_TIMEOUT_MS = 10_000;
 
 @Injectable({ providedIn: 'root' })
 export class HolidayService {
   private readonly http = inject(HttpClient);
   private readonly API_BASE = 'https://date.nager.at/api/v3';
   private readonly cache = new Map<string, Holiday[]>();
+  private latestKey: string | null = null;
 
   private readonly _holidays = signal<Holiday[]>([]);
   private readonly _loading = signal(false);
@@ -34,10 +37,13 @@ export class HolidayService {
 
   loadHolidays(year: number): void {
     const cacheKey = `${this._countryCode()}-${year}`;
+    this.latestKey = cacheKey;
+    const isLatest = () => this.latestKey === cacheKey;
 
     if (this.cache.has(cacheKey)) {
       this._holidays.set(this.cache.get(cacheKey)!);
       this._error.set(null);
+      this._loading.set(false);
       return;
     }
 
@@ -47,6 +53,7 @@ export class HolidayService {
     this.http
       .get<NagerHoliday[]>(`${this.API_BASE}/PublicHolidays/${year}/${this._countryCode()}`)
       .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
         tap((data) => {
           const holidays = data.map((h) => ({
             date: new Date(h.date + 'T00:00:00'),
@@ -55,18 +62,17 @@ export class HolidayService {
             countryCode: h.countryCode,
           }));
           this.cache.set(cacheKey, holidays);
-          this._holidays.set(holidays);
+          if (isLatest()) this._holidays.set(holidays);
         }),
         catchError((err) => {
-          const message =
-            err.status === 0
-              ? 'Network error. Please check your connection.'
-              : `Failed to load holidays (HTTP ${err.status}).`;
-          this._error.set(message);
+          if (!isLatest()) return of(null);
+          this._error.set(this.errorMessage(err));
           this._holidays.set([]);
           return of(null);
         }),
-        finalize(() => this._loading.set(false)),
+        finalize(() => {
+          if (isLatest()) this._loading.set(false);
+        }),
       )
       .subscribe();
   }
@@ -77,6 +83,14 @@ export class HolidayService {
 
   getHolidayName(date: Date): string | undefined {
     return this.holidayMap().get(this.dateToKey(date))?.name;
+  }
+
+  private errorMessage(err: unknown): string {
+    if (err instanceof TimeoutError) return 'Request timed out. Please try again.';
+    const status = (err as { status?: number }).status;
+    return status === 0
+      ? 'Network error. Please check your connection.'
+      : `Failed to load holidays (HTTP ${status}).`;
   }
 
   private dateToKey(date: Date): string {

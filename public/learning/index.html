@@ -1,0 +1,1286 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/x-icon" href="../favicon.ico">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>從 React 到 Angular</title>
+<meta name="description" content="React 開發者學習 Angular 19 的紀錄：以 Rate Calendar 專案為例，用互動圖解說明 Signals、依賴注入、Strategy Pattern 定價引擎與模板語法。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ground:#F3F4F7;
+  --surface:#FFFFFF;
+  --sunken:#E9ECF1;
+  --ink:#14161B;
+  --muted:#565C6B;
+  --faint:#8A90A0;
+  --line:#D6DAE2;
+  --ng:#C3183A;
+  --ng-soft:#FBE4E9;
+  --rx:#08718F;
+  --rx-soft:#DCF0F6;
+  --ok:#1E7549;
+  --display:"Archivo","Noto Sans TC",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Noto Sans TC",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono","Noto Sans TC",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0D0F13;--surface:#15181E;--sunken:#1D212A;--ink:#E8EAF0;--muted:#A3A9B7;--faint:#6F7585;--line:#2B303B;
+    --ng:#FF5C79;--ng-soft:#3B1621;--rx:#52C9EC;--rx-soft:#0E2D37;--ok:#52C58D;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0D0F13;--surface:#15181E;--sunken:#1D212A;--ink:#E8EAF0;--muted:#A3A9B7;--faint:#6F7585;--line:#2B303B;
+  --ng:#FF5C79;--ng-soft:#3B1621;--rx:#52C9EC;--rx-soft:#0E2D37;--ok:#52C58D;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.7;padding-inline:20px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration-color:var(--ng);text-underline-offset:3px}
+code,pre,kbd{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--ng);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1060px;margin:0 auto}
+.prose{max-width:680px}
+.prose p{margin:0 0 14px}
+.muted{color:var(--muted)}
+.rx{color:var(--rx)}
+.ng{color:var(--ng)}
+
+/* nav */
+.topnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;margin-inline:-20px;padding-inline:20px;background:color-mix(in srgb,var(--ground) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topnav .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
+.topnav a{flex:none;font-family:var(--mono);font-size:12.5px;padding:5px 10px;border-radius:999px;text-decoration:none;color:var(--muted)}
+.topnav a:hover{background:var(--sunken);color:var(--ink)}
+
+/* hero */
+.hero{padding-block:64px 40px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
+h1{font-family:var(--display);font-stretch:125%;font-weight:850;font-size:clamp(44px,8.4vw,96px);line-height:.98;letter-spacing:-.02em;margin:0 0 24px;text-wrap:balance}
+h1 .rx{font-weight:500;font-stretch:100%}
+.lede{font-size:clamp(17px,2vw,19px);max-width:640px;color:var(--muted);margin:0 0 32px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0 0 40px}
+.meta div{background:var(--surface);padding:14px 16px}
+.meta dt{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.meta dd{margin:2px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+
+.links{display:flex;flex-wrap:wrap;gap:10px;margin:-16px 0 40px}
+.links a{text-decoration:none}
+.dict h3{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 12px}
+.dict ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 32px}
+.dict li{display:grid;grid-template-columns:1fr 22px 1fr;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);font-family:var(--mono);font-size:13.5px}
+.dict li span:first-child{color:var(--rx)}
+.dict li span:last-child{color:var(--ng);font-weight:600}
+.dict li .arr{color:var(--faint);text-align:center}
+
+/* sections */
+section{padding-block:72px 16px;border-top:1px solid var(--line);scroll-margin-top:56px}
+.sec-head{display:grid;gap:10px;margin-bottom:22px}
+.pair{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;width:fit-content;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+h2{font-family:var(--display);font-stretch:112%;font-weight:760;font-size:clamp(28px,4.2vw,42px);line-height:1.1;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h3.sub{font-family:var(--display);font-stretch:108%;font-size:19px;font-weight:700;margin:28px 0 8px}
+
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin:28px 0 8px}
+.fig-cap{font-size:13.5px;color:var(--muted);margin:14px 0 0;max-width:720px}
+.fig-title{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:600}
+.scroll-x{overflow-x:auto}
+
+pre{margin:0;background:var(--sunken);border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.6;overflow-x:auto;white-space:pre;color:var(--ink)}
+pre .c{color:var(--faint)}
+pre .k{color:var(--ng)}
+.code-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.code-pair .lab{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px;font-weight:600}
+
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{font-family:var(--mono);font-size:13px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.btn.primary:hover{opacity:.88}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);font-family:var(--mono);font-size:13px;padding:7px 12px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+
+/* stack compare */
+.stack{display:grid;grid-template-columns:minmax(90px,.8fr) 1fr 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+.stack > div{padding:10px 14px;border-bottom:1px solid var(--line)}
+.stack .hd{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;background:var(--sunken)}
+.stack .layer{color:var(--muted);font-size:13.5px}
+.stack .r code,.stack .a code{font-size:12.5px;padding:3px 8px;border-radius:6px;display:inline-block;line-height:1.5}
+.stack .r code{border:1px dashed var(--rx);color:var(--rx)}
+.stack .a code{background:var(--ng-soft);color:var(--ng);border:1px solid transparent}
+.stack .row-last{border-bottom:0}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .l-r::before{border:1px dashed var(--rx)}
+.legend .l-a::before{background:var(--ng-soft);border:1px solid var(--ng)}
+
+/* upfront concepts */
+.lanes{display:grid;gap:14px}
+.lane{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:start}
+.lane-name{font-family:var(--display);font-stretch:110%;font-weight:700;font-size:16px;padding-top:4px}
+.lane-name small{display:block;font-family:var(--mono);font-size:11px;font-weight:400;color:var(--faint);font-stretch:100%}
+.buckets{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bucket{border:1px dashed var(--line);border-radius:10px;padding:10px}
+.bucket .bl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+.bucket .chips{display:flex;flex-wrap:wrap;gap:6px}
+.cchip{font-family:var(--mono);font-size:12px;padding:3px 9px;border-radius:6px}
+.cchip.ng{background:var(--ng-soft);color:var(--ng)}
+.cchip.rx{background:var(--rx-soft);color:var(--rx)}
+.cchip.pick{border:1px dashed var(--rx);color:var(--rx);background:transparent}
+.ctable{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+.ctable th{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--sunken)}
+.ctable td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
+.ctable td:first-child{font-weight:600;width:24%}
+.ctable td:first-child code{display:block;font-weight:400;font-size:11.5px;color:var(--ng);margin-top:2px}
+.ctable td:nth-child(3){color:var(--muted);width:20%}
+.ctable td:nth-child(4){font-family:var(--mono);font-size:12px;color:var(--muted);width:20%}
+.ctable tr:last-child td{border-bottom:0}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+
+/* signals figure */
+.sg-controls{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.sg-controls label{font-family:var(--mono);font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:10px}
+.sg-controls output{color:var(--ink);font-weight:600;min-width:44px;font-variant-numeric:tabular-nums}
+input[type=range]{accent-color:var(--ng);width:150px}
+.sg-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+.panel{border:1px solid var(--line);border-radius:12px;padding:14px}
+.panel h4{margin:0 0 4px;font-family:var(--display);font-stretch:108%;font-size:16px}
+.panel .hint{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+.sgsvg{width:100%;min-width:470px;height:auto;display:block}
+.node rect{stroke-width:1.5;transition:fill .25s,stroke .25s,stroke-width .25s}
+.n-signal rect{fill:var(--ng-soft);stroke:var(--ng)}
+.n-computed rect{fill:var(--surface);stroke:var(--ink)}
+.n-view rect{fill:var(--sunken);stroke:var(--faint);stroke-dasharray:4 3}
+.node.hot rect{fill:var(--ng);stroke:var(--ng);stroke-width:2}
+.node.hot .t-label,.node.hot .t-kind,.node.hot .t-count{fill:var(--surface)}
+.t-label{fill:var(--ink);font-family:var(--mono);font-size:13px;font-weight:600}
+.t-kind{fill:var(--muted);font-family:var(--mono);font-size:10.5px}
+.t-count{fill:var(--ng);font-family:var(--mono);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.edge{fill:none;stroke:var(--line);stroke-width:1.6;transition:stroke .2s}
+.edge.hot{stroke:var(--ng);stroke-width:2.4;stroke-dasharray:6 4;animation:flow .5s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-20}}
+.rtree,.rtree ul{list-style:none;margin:0;padding:0}
+.rtree ul{padding-left:18px;border-left:1px solid var(--line);margin-left:8px}
+.rtree li{margin:6px 0}
+.rnode{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-family:var(--mono);font-size:12.5px;transition:background .25s,border-color .25s}
+.rnode small{color:var(--faint);font-size:11px}
+.rnode b{margin-left:auto;color:var(--rx);font-variant-numeric:tabular-nums}
+.rnode.hot{background:var(--rx);border-color:var(--rx);color:var(--surface)}
+.rnode.hot small,.rnode.hot b{color:var(--surface)}
+.cells{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;margin:6px 0 0 10px;max-width:220px}
+.cells i{aspect-ratio:1;border-radius:2px;background:var(--sunken);transition:background .25s}
+.cells.hot i{background:var(--rx)}
+.sg-report{margin-top:16px;padding:12px 14px;border-radius:10px;background:var(--sunken);font-size:14px;display:grid;gap:4px}
+.sg-report b{font-family:var(--mono);font-size:12px;letter-spacing:.06em;font-weight:600}
+
+/* DI */
+.di-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggle input{accent-color:var(--ng);width:16px;height:16px}
+.di-layout{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+.inj{border:1.5px solid var(--line);border-radius:12px;padding:12px;transition:border-color .2s,box-shadow .2s,background .2s}
+.inj > header{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-family:var(--mono);font-size:13px;font-weight:600}
+.inj > header span{font-weight:400;font-size:11.5px;color:var(--faint)}
+.inj.root{background:var(--ground)}
+.inj.comp{background:var(--surface);margin-top:12px}
+.inj.leaf{background:var(--ground);flex:1 1 200px}
+.children{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.provs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:26px;align-items:center}
+.chip{font-family:var(--mono);font-size:11.5px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface);transition:background .2s,color .2s,border-color .2s}
+.chip.svc{border-color:var(--ng);color:var(--ng)}
+.chip.found{background:var(--ng);color:var(--surface);border-color:var(--ng)}
+.chip.none{border-style:dashed;color:var(--faint)}
+.inj.probe{border-color:var(--ng);box-shadow:0 0 0 3px var(--ng-soft)}
+.inj.asker{border-color:var(--ink)}
+.got{margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--faint);min-height:20px}
+.got.has{color:var(--ng);font-weight:600}
+.di-log{list-style:none;margin:0;padding:0;font-size:13.5px;display:grid;gap:6px}
+.di-log li{padding:8px 10px;border-radius:8px;background:var(--sunken)}
+.di-log li code{font-size:12px}
+.di-log .empty{color:var(--faint);background:transparent;border:1px dashed var(--line)}
+
+/* engine */
+.eng{display:grid;grid-template-columns:1.2fr 1fr;gap:20px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.cal-head strong{font-family:var(--display);font-stretch:110%;font-size:18px}
+.peak-tag{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;background:var(--ng-soft);color:var(--ng);margin-left:8px;vertical-align:3px}
+.navbtn{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:16px}
+.navbtn:disabled{opacity:.35;cursor:not-allowed}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .wd{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;padding-bottom:4px}
+.cal button.d{position:relative;display:grid;gap:0;justify-items:center;padding:6px 2px;border-radius:8px;border:1px solid transparent;background:var(--ground);min-height:52px;transition:border-color .15s}
+.cal button.d:hover{border-color:var(--line)}
+.cal .d .n{font-size:13px;font-weight:500;font-variant-numeric:tabular-nums}
+.cal .d .p{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cal .d.we{background:var(--sunken)}
+.cal .d.up .p{color:var(--ng);font-weight:600}
+.cal .d.hol::after{content:"";position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ng)}
+.cal .d.out{opacity:.32}
+.cal .d.sel{border-color:var(--ng);box-shadow:inset 0 0 0 1px var(--ng)}
+.rules-toggle{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+.pipe{display:grid;gap:0}
+.pipe .end{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px;border-radius:10px;background:var(--sunken)}
+.pipe .end span{font-size:13px;color:var(--muted)}
+.pipe .end b{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums}
+.pipe .end.final{background:var(--ink);color:var(--ground)}
+.pipe .end.final span{color:var(--ground);opacity:.75}
+.pipe .end.final b{font-size:26px}
+.stage{position:relative;margin:0 0 0 18px;padding:12px 14px 12px 22px;border-left:2px solid var(--line);transition:border-color .2s}
+.stage::before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--line);transition:all .2s}
+.stage .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.stage .nm{font-family:var(--mono);font-size:13px;font-weight:600}
+.stage .od{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.stage .cond{font-size:13px;color:var(--muted);margin:2px 0 4px}
+.stage .res{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.stage.apply .res{color:var(--ng);font-weight:600}
+.stage.skip .res,.stage.off .res{color:var(--faint)}
+.stage.off .nm{text-decoration:line-through;color:var(--faint)}
+.stage.lit{border-left-color:var(--ng)}
+.stage.lit::before{background:var(--ng);border-color:var(--ng)}
+.stage.lit.skip::before,.stage.lit.off::before{background:var(--surface);border-color:var(--faint)}
+.stage.lit.skip,.stage.lit.off{border-left-color:var(--faint)}
+.sel-info{font-size:13.5px;color:var(--muted);margin:0 0 10px;min-height:22px}
+
+/* template tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tabs button{font-family:var(--mono);font-size:12.5px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.tab-note{font-size:14px;color:var(--muted);margin:12px 0 0}
+
+/* roadmap */
+.road{list-style:none;margin:28px 0 0;padding:0;counter-reset:s;display:grid;gap:0}
+.road li{counter-increment:s;display:grid;grid-template-columns:52px 1fr;gap:4px 14px;padding:16px 0;border-bottom:1px solid var(--line)}
+.road li::before{content:counter(s,decimal-leading-zero);grid-row:span 3;font-family:var(--display);font-stretch:125%;font-weight:800;font-size:26px;color:var(--ng);line-height:1.1}
+.road .t{font-weight:600;font-size:16.5px}
+.road .m{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.road .m .rx::before{content:"React ≈ ";color:var(--faint)}
+.road .m .f::before{content:"專案 → ";color:var(--faint)}
+.road .w{font-size:14px;color:var(--muted)}
+
+/* pitfalls */
+.log{display:grid;gap:12px;margin-top:24px}
+.entry{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.entry .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ng);font-weight:600;padding-top:2px}
+.entry h4{margin:0 0 6px;font-size:15.5px}
+.entry .err{display:block;font-family:var(--mono);font-size:12px;background:var(--sunken);padding:6px 10px;border-radius:6px;margin:0 0 8px;overflow-x:auto;white-space:nowrap;color:var(--muted)}
+.entry p{margin:0 0 4px;font-size:14px}
+.entry p b{font-weight:600}
+.entry .lesson{color:var(--muted)}
+.myths{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.myth{padding:14px 16px;border-radius:12px;background:var(--sunken);font-size:14px}
+.myth b{display:block;margin-bottom:4px}
+
+/* milestones */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:24px 0}
+.stat{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.stat b{display:block;font-family:var(--display);font-stretch:125%;font-weight:800;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.tl{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);margin-left:6px}
+.tl li{position:relative;padding:0 0 22px 22px}
+.tl li::before{content:"";position:absolute;left:-7px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--ground);border:2px solid var(--ng)}
+.tl .when{font-family:var(--mono);font-size:12px;color:var(--faint);display:flex;gap:10px;flex-wrap:wrap}
+.tl .when code{color:var(--ng)}
+.tl .what{font-weight:600;margin:2px 0}
+.tl .det{font-size:14px;color:var(--muted);margin:0}
+
+/* agent */
+.assume{font-size:14px;color:var(--muted);border-left:3px solid var(--ng);padding:4px 0 4px 14px;margin:0 0 8px;max-width:680px}
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.ladder button{text-align:left;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:grid;gap:6px;align-content:start;transition:border-color .15s}
+.ladder button:hover{border-color:var(--ink)}
+.ladder button[aria-selected="true"]{border-color:var(--ng);box-shadow:inset 0 0 0 1px var(--ng)}
+.ladder .lv{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+.ladder .nm{font-weight:600;font-size:15px}
+.meter{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.meter i{height:5px;border-radius:2px;background:var(--sunken)}
+.meter i.on{background:var(--ng)}
+.ag-body{display:grid;grid-template-columns:1fr 1.3fr;gap:18px}
+.facts{display:grid;gap:10px;margin:0}
+.facts div{display:grid;gap:2px}
+.facts dt{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.facts dd{margin:0;font-size:14.5px}
+.facts code{font-size:12px}
+.pill{display:inline-block;font-family:var(--mono);font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+.pill.r0{color:var(--ok);border-color:var(--ok)}
+.pill.r1{color:var(--ng);border-color:var(--ng)}
+.chat{display:grid;gap:10px;align-content:start;background:var(--ground);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:260px}
+.chat-lab{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+.msg{max-width:92%;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.6}
+.msg.u{justify-self:end;background:var(--ink);color:var(--ground);border-bottom-right-radius:4px}
+.msg.a{justify-self:start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg .calc{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.tcall{justify-self:start;font-family:var(--mono);font-size:11.5px;color:var(--muted);padding:4px 10px;border-radius:6px;border:1px dashed var(--line)}
+.tcall b{color:var(--ng);font-weight:600}
+.prop{border:1.5px solid var(--ng);border-radius:10px;padding:12px;background:var(--surface);display:grid;gap:8px;max-width:92%}
+.prop h5{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ng)}
+.prop .diff{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.prop .acts{display:flex;gap:8px;flex-wrap:wrap}
+.prop .st{font-size:13px;font-weight:600}
+.prop.done{border-color:var(--ok)}
+.prop.done .st,.prop.done h5{color:var(--ok)}
+.prop.back{border-color:var(--faint)}
+.prop.back .st,.prop.back h5{color:var(--muted)}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:24px}
+.principle{padding:16px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.principle b{display:block;font-family:var(--display);font-stretch:108%;font-size:16px;margin-bottom:4px}
+.principle p{margin:0;font-size:14px;color:var(--muted)}
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.phase{padding:16px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.phase .day{font-family:var(--display);font-stretch:125%;font-weight:800;font-size:28px;line-height:1.1;color:var(--ng)}
+.phase .ph{font-weight:600;margin:2px 0 8px}
+.phase ul{margin:0;padding-left:18px;font-size:14px;color:var(--muted)}
+.phase li{margin:3px 0}
+.metrics{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 24px}
+.metrics li{padding:12px 0;border-bottom:1px solid var(--line);display:grid;gap:2px}
+.metrics .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.metrics .v{font-weight:600}
+.metrics .n{font-size:13.5px;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);margin-top:64px;padding-block:40px 64px}
+.closing{font-family:var(--display);font-stretch:110%;font-size:clamp(22px,3vw,30px);font-weight:700;line-height:1.3;max-width:760px;margin:0 0 18px;text-wrap:balance}
+.closing em{font-style:normal;color:var(--ng)}
+
+@media (max-width:860px){
+  .sg-grid,.di-layout,.eng,.ag-body{grid-template-columns:1fr}
+  .ladder{grid-template-columns:repeat(2,1fr)}
+  .phases{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .entry{grid-template-columns:1fr;gap:6px}
+  .stack{font-size:13px}
+  .stack > div{padding:8px 10px}
+  .lane,.buckets{grid-template-columns:1fr}
+  .road li{grid-template-columns:40px 1fr}
+  .road li::before{font-size:20px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<nav class="topnav" aria-label="章節">
+  <div class="wrap">
+    <a href="#mindset">心態</a>
+    <a href="#signals">Signals</a>
+    <a href="#di">依賴注入</a>
+    <a href="#engine">定價引擎</a>
+    <a href="#template">模板語法</a>
+    <a href="#roadmap">學習路徑</a>
+    <a href="#pitfalls">踩坑紀錄</a>
+    <a href="#milestones">里程碑</a>
+    <a href="#agent">下一步：Agent</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="hero">
+    <p class="eyebrow">學習紀錄 · Angular side project · Rate Calendar</p>
+    <h1><span class="rx">從 React</span><br>到 <span class="ng">Angular</span></h1>
+    <p class="lede">這是我為了學 Angular 19 做的 side project：用 React 的直覺出發，做出一個可設定規則的飯店房價日曆。這份紀錄把每個新概念對回 React 裡熟悉的東西，並用專案的真實程式碼與數字做成可以操作的圖解。</p>
+    <dl class="meta">
+      <div><dt>專案</dt><dd>房價規則引擎 + 月曆 UI</dd></div>
+      <div><dt>技術</dt><dd>Angular 19 · TypeScript strict</dd></div>
+      <div><dt>測試</dt><dd>54 單元 · 6 E2E</dd></div>
+      <div><dt>期間</dt><dd>2026-09-20 → 09-23</dd></div>
+    </dl>
+    <p class="links"><a class="btn primary" href="https://shueny.github.io/angular-rate-calendar/">看線上 Demo →</a><a class="btn" href="https://github.com/shueny/angular-rate-calendar">原始碼</a></p>
+    <div class="dict">
+      <h3>對照字典</h3>
+      <ul>
+        <li><span>useState</span><span class="arr">→</span><span>signal()</span></li>
+        <li><span>useMemo</span><span class="arr">→</span><span>computed()</span></li>
+        <li><span>useEffect</span><span class="arr">→</span><span>effect()</span></li>
+        <li><span>Context + useContext</span><span class="arr">→</span><span>Service + inject()</span></li>
+        <li><span>props</span><span class="arr">→</span><span>input() / @Input</span></li>
+        <li><span>callback props</span><span class="arr">→</span><span>output() / @Output</span></li>
+        <li><span>{cond &amp;&amp; &lt;A/&gt;}</span><span class="arr">→</span><span>@if (cond) { }</span></li>
+        <li><span>items.map(…)</span><span class="arr">→</span><span>@for (… ; track id)</span></li>
+        <li><span>react-router</span><span class="arr">→</span><span>@angular/router</span></li>
+        <li><span>RTL render()</span><span class="arr">→</span><span>TestBed.createComponent()</span></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- 1. Mindset -->
+  <section id="mindset">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">Library</span>→<span class="ng">Framework</span></span>
+      <h2>先換腦袋：函式庫 vs 框架</h2>
+    </div>
+    <div class="prose">
+      <p>React 只負責畫面，其他每一層都要自己挑套件；Angular 則把路由、表單、HTTP、依賴注入、測試工具和 CLI 全部內建。學 Angular 覺得「東西很多」，不是因為難，而是因為這些原本分散在 React 生態系裡的選擇，一次全部擺到你面前。</p>
+      <p>代價是彈性比較小；好處是每個 Angular 專案長得都差不多，換團隊或接手舊專案的成本很低。</p>
+    </div>
+    <figure class="fig">
+      <p class="fig-title">這個專案每一層用了什麼</p>
+      <div class="scroll-x">
+        <div class="stack" role="table" aria-label="React 與 Angular 各層工具比較">
+          <div class="hd" role="columnheader">層</div><div class="hd rx" role="columnheader">React 典型組合</div><div class="hd ng" role="columnheader">Angular（本專案）</div>
+          <div class="layer">畫面</div><div class="r"><code>react</code></div><div class="a"><code>@angular/core</code></div>
+          <div class="layer">路由</div><div class="r"><code>react-router</code></div><div class="a"><code>@angular/router</code></div>
+          <div class="layer">表單</div><div class="r"><code>react-hook-form</code></div><div class="a"><code>ReactiveFormsModule</code></div>
+          <div class="layer">HTTP</div><div class="r"><code>fetch</code> / <code>TanStack Query</code></div><div class="a"><code>HttpClient</code></div>
+          <div class="layer">共享狀態</div><div class="r"><code>Context</code> / <code>Zustand</code></div><div class="a"><code>Service + Signals</code></div>
+          <div class="layer">依賴注入</div><div class="r"><code>（以 Context 模擬）</code></div><div class="a"><code>Injector</code></div>
+          <div class="layer">元件測試</div><div class="r"><code>Testing Library</code></div><div class="a"><code>TestBed</code></div>
+          <div class="layer row-last">建置 / CLI</div><div class="r row-last"><code>Vite</code></div><div class="a row-last"><code>Angular CLI</code></div>
+        </div>
+      </div>
+      <div class="legend"><span class="l-r">需要自己挑選、安裝的套件</span><span class="l-a">框架內建</span></div>
+    </figure>
+
+    <h3 class="sub">「東西比較多」到底多在哪</h3>
+    <div class="prose">
+      <p>我把做出 Rate Calendar 時第一週就碰到、而且繞不過去的 Angular 概念一個個列出來，共 13 個。同樣的功能用 React 寫，第一週只需要 JSX、props、<code>useState</code>、<code>useEffect</code> 這 4 個核心概念就能動起來。路由、表單、資料抓取、測試當然也要學，但可以等真的用到時再挑套件、再學。</p>
+      <p>所以 React 的學習成本不是比較少，而是<strong>分散在後面，而且要自己做選擇</strong>；Angular 則是<strong>集中在前面，但不用選</strong>。</p>
+    </div>
+    <figure class="fig">
+      <p class="fig-title">做出同一個功能，第一週要會的東西</p>
+      <div class="lanes">
+        <div class="lane">
+          <div class="lane-name ng">Angular<small>13 個，全部第一週</small></div>
+          <div class="buckets">
+            <div class="bucket" style="grid-column:1 / -1">
+              <p class="bl">第一週就會碰到</p>
+              <div class="chips">
+                <span class="cchip ng">@Component</span><span class="cchip ng">模板語法</span><span class="cchip ng">元件 imports</span><span class="cchip ng">依賴注入</span><span class="cchip ng">Signals</span><span class="cchip ng">RxJS</span><span class="cchip ng">Reactive Forms</span><span class="cchip ng">變更偵測</span><span class="cchip ng">app.config providers</span><span class="cchip ng">Router</span><span class="cchip ng">生命週期</span><span class="cchip ng">@Input / @Output</span><span class="cchip ng">TestBed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="lane">
+          <div class="lane-name rx">React<small>4 個 + 之後再選</small></div>
+          <div class="buckets">
+            <div class="bucket">
+              <p class="bl">第一週</p>
+              <div class="chips"><span class="cchip rx">JSX</span><span class="cchip rx">props</span><span class="cchip rx">useState</span><span class="cchip rx">useEffect</span></div>
+            </div>
+            <div class="bucket">
+              <p class="bl">需要時再挑套件、再學</p>
+              <div class="chips"><span class="cchip pick">路由套件</span><span class="cchip pick">表單套件</span><span class="cchip pick">資料抓取</span><span class="cchip pick">測試工具</span><span class="cchip pick">狀態管理</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="fig-cap">數字是我在這個專案的實際計數，不是通用統計。不同功能需要的概念會不一樣。</p>
+    </figure>
+
+    <div class="tbl-wrap" style="margin-top:20px">
+      <table class="ctable">
+        <thead><tr><th>Angular 概念</th><th>為什麼第一週就躲不掉</th><th>React 的對應</th><th>在專案哪裡出現</th></tr></thead>
+        <tbody>
+          <tr><td>元件裝飾器<code>@Component</code></td><td>每個元件都要寫 selector、imports、template、style 等設定，不能只寫一個函式。</td><td>一般函式就是元件</td><td>rate-calendar.component.ts</td></tr>
+          <tr><td>模板語法<code>[ ] ( ) {{ }} @if @for</code></td><td>模板是另一套語法，不是 JavaScript。屬性、事件、插值、控制流各有寫法，<code>@for</code> 還一定要寫 <code>track</code>。</td><td>JSX 本身就是 JS</td><td>rate-calendar.component.html</td></tr>
+          <tr><td>元件的 imports 陣列<code>imports: [ ... ]</code></td><td>模板用到的元件、指令都要在這裡登記，漏了會報「is not a known element」。</td><td>檔案頂端 import 就好</td><td>pricing-config-form（ReactiveFormsModule）</td></tr>
+          <tr><td>依賴注入<code>@Injectable · inject()</code></td><td>光是要打 API 取得 HttpClient，就得用 DI。還要懂 <code>providedIn: 'root'</code> 是什麼意思。</td><td>不需要，用 import 或 Context</td><td>holiday.service.ts</td></tr>
+          <tr><td>Signals<code>signal · computed · effect</code></td><td>狀態都放在 signal 裡，讀取時要加括號呼叫，更新要用 <code>set</code> / <code>update</code>。</td><td>useState / useMemo / useEffect</td><td>pricing-engine.service.ts</td></tr>
+          <tr><td>RxJS<code>Observable · pipe · subscribe</code></td><td>HttpClient 回傳的是 Observable 而不是 Promise，不會 subscribe 就拿不到資料。</td><td>fetch 回傳 Promise</td><td>holiday.service.ts</td></tr>
+          <tr><td>Reactive Forms<code>FormGroup · FormControl</code></td><td>設定面板要驗證輸入，就得學 FormGroup、Validators 和 <code>formControlName</code>。</td><td>可以先用 useState 撐著</td><td>pricing-config-form.component.ts</td></tr>
+          <tr><td>變更偵測<code>Zone.js · OnPush</code></td><td>畫面沒更新時要知道原因；用 Vitest 測試時還得手動載入 zone.js。</td><td>state 變了就 re-render</td><td>test-setup.ts</td></tr>
+          <tr><td>應用程式設定<code>app.config.ts · provide*()</code></td><td>HttpClient、Router 都要在這裡 provide，沒註冊就會在執行時才報錯。</td><td>不需要</td><td>app.config.ts</td></tr>
+          <tr><td>路由<code>Routes · loadComponent</code></td><td>專案骨架預設就有路由，lazy loading 也是用路由設定做的。</td><td>另外裝 react-router</td><td>app.routes.ts</td></tr>
+          <tr><td>生命週期<code>ngOnInit · ngOnDestroy</code></td><td>表單初始化寫在 <code>ngOnInit</code>；空的生命週期方法還會被 lint 擋。</td><td>useEffect</td><td>pricing-config-form.component.ts</td></tr>
+          <tr><td>元件輸入輸出<code>@Input · @Output</code></td><td>父元件把選取的日期傳給明細面板，要用 <code>@Input({ required: true })</code>。</td><td>props</td><td>price-detail.component.ts</td></tr>
+          <tr><td>測試環境<code>TestBed · HttpTestingController</code></td><td>元件和 Service 要先透過 TestBed 建立，HTTP 要換成測試替身。</td><td>Testing Library 的 render()</td><td>*.spec.ts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2. Signals -->
+  <section id="signals">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">useState / useMemo</span>→<span class="ng">signal / computed</span></span>
+      <h2>Signals：只重算真正受影響的地方</h2>
+    </div>
+    <div class="prose">
+      <p>在 React 裡，state 一變，擁有它的元件和底下所有子元件預設都會重新執行，要靠 <code>memo</code>、<code>useMemo</code> 手動擋掉。Angular 的 Signals 會記住「誰讀了誰」，形成一張依賴圖；值改變時只有讀到它的 <code>computed()</code> 和模板會更新。</p>
+      <p>下面左邊是 Rate Calendar 實際的依賴關係，右邊是同樣功能用 React 寫時的元件樹。試著操作看看，特別是「選另一天」。</p>
+    </div>
+    <figure class="fig" id="sgFig">
+      <div class="sg-controls">
+        <label for="sgBase">基本房價 <input type="range" id="sgBase" min="60" max="240" step="10" value="100"> <output id="sgBaseOut" for="sgBase">$100</output></label>
+        <span class="sg-controls-country" style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;color:var(--muted)">假日國家
+          <span class="seg" role="group" aria-label="假日國家">
+            <button type="button" data-cc="US" aria-pressed="true">US</button>
+            <button type="button" data-cc="TW" aria-pressed="false">TW</button>
+            <button type="button" data-cc="JP" aria-pressed="false">JP</button>
+          </span>
+        </span>
+        <button type="button" class="btn primary" id="sgDate">選另一天</button>
+      </div>
+      <div class="sg-grid">
+        <div class="panel">
+          <h4 class="ng">Angular · Signals 依賴圖</h4>
+          <p class="hint">數字 = 這個節點被重新計算的次數。依賴方向由上往下。</p>
+          <div class="scroll-x"><svg class="sgsvg" id="sgSvg" viewBox="0 0 560 372" role="img" aria-label="Signals 依賴圖：config、holidays、selectedDate 三個 signal，經過 rules、holidayMap、days、detail 等 computed，最後流到日曆格與明細面板"></svg></div>
+        </div>
+        <div class="panel">
+          <h4 class="rx">React · 元件樹（未使用 memo）</h4>
+          <p class="hint">數字 = 這個元件重新 render 的次數。</p>
+          <ul class="rtree" id="rTree">
+            <li><div class="rnode" data-c="root"><code>&lt;RateCalendar&gt;</code><small>useState ×3</small><b>0</b></div>
+              <ul>
+                <li><div class="rnode" data-c="form"><code>&lt;ConfigForm&gt;</code><b>0</b></div></li>
+                <li><div class="rnode" data-c="grid"><code>&lt;CalendarGrid&gt;</code><b>0</b></div>
+                  <ul><li><div class="rnode" data-c="cell"><code>&lt;DayCell&gt;</code><small>×42</small><b>0</b></div><div class="cells" id="rCells" aria-hidden="true"></div></li></ul>
+                </li>
+                <li><div class="rnode" data-c="detail"><code>&lt;PriceDetail&gt;</code><b>0</b></div></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="sg-report" id="sgReport" aria-live="polite">
+        <b>本次更新</b>
+        <span class="muted">拖動房價、切換國家，或按「選另一天」。</span>
+      </div>
+      <p class="fig-cap">React 也能做到精準更新（<code>memo</code>、<code>useMemo</code>、狀態下放），差別在於那是你要手動加上的優化；Signals 則預設就追蹤依賴。畫面層面，Angular 搭配 <code>OnPush</code> 或 zoneless 時，也只會檢查受影響的元件。</p>
+    </figure>
+    <div class="code-pair" style="margin-top:20px">
+      <div>
+        <p class="lab rx">React</p>
+<pre><span class="k">const</span> [config, setConfig] = useState(DEFAULT);
+<span class="k">const</span> rules = useMemo(
+  () =&gt; buildRules(config), [config]
+);   <span class="c">// 依賴陣列要自己寫對</span></pre>
+      </div>
+      <div>
+        <p class="lab ng">Angular · pricing-engine.service.ts</p>
+<pre><span class="k">private readonly</span> _config = signal(DEFAULT_PRICING_CONFIG);
+<span class="k">readonly</span> rules = computed(() =&gt; {
+  <span class="k">const</span> c = <span class="k">this</span>._config(); <span class="c">// 讀取即訂閱</span>
+  <span class="k">return</span> [<span class="k">new</span> WeekendRule(c.weekendMultiplier), …];
+});</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. DI -->
+  <section id="di">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">Context + useContext</span>→<span class="ng">Injector + inject()</span></span>
+      <h2>依賴注入：往上找，直到找到為止</h2>
+    </div>
+    <div class="prose">
+      <p>React 沒有內建 DI，最接近的是 Context：建立 Context、在上層包 Provider、在下層 <code>useContext</code>。Angular 把這件事做成框架核心：元件呼叫 <code>inject(X)</code>，Angular 會從自己的 injector 開始往上找，找到第一個提供 <code>X</code> 的地方就用它的實例。</p>
+      <p>找到的層級決定了實例的生命週期與共享範圍，這也是測試時可以輕鬆換成 mock 的原因。</p>
+    </div>
+    <figure class="fig">
+      <div class="di-controls">
+        <button type="button" class="btn primary" data-ask="form">從 ConfigForm 呼叫 inject()</button>
+        <button type="button" class="btn primary" data-ask="detail">從 PriceDetail 呼叫 inject()</button>
+        <label class="toggle"><input type="checkbox" id="diLocal"> RateCalendar 自己 <code>providers: [PricingEngineService]</code></label>
+      </div>
+      <div class="di-layout">
+        <div class="inj root" data-lv="root">
+          <header>Root EnvironmentInjector <span>app.config.ts · providedIn: 'root'</span></header>
+          <div class="provs"><span class="chip">HttpClient</span><span class="chip">HolidayService</span><span class="chip svc" id="rootProv">PricingEngineService #1</span></div>
+          <div class="inj comp" data-lv="cal">
+            <header>RateCalendarComponent <span>ElementInjector</span></header>
+            <div class="provs" id="calProvs"><span class="chip none">沒有 providers</span></div>
+            <div class="children">
+              <div class="inj leaf" data-lv="form">
+                <header>PricingConfigFormComponent</header>
+                <div class="got" id="got-form">尚未注入</div>
+              </div>
+              <div class="inj leaf" data-lv="detail">
+                <header>PriceDetailComponent</header>
+                <div class="got" id="got-detail">尚未注入</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="fig-title">查找過程</p>
+          <ol class="di-log" id="diLog" aria-live="polite"><li class="empty">按左上的按鈕，看 Angular 如何一層層往上找。</li></ol>
+        </div>
+      </div>
+      <p class="fig-cap">預設情況下兩個子元件拿到同一個 root 單例（#1）。勾選後 RateCalendar 會建立自己的實例（#2），它底下的元件共用 #2，和 root 的 #1 互不影響，類似 React 裡在不同層放兩個 Provider。</p>
+    </figure>
+    <div class="code-pair" style="margin-top:20px">
+      <div>
+        <p class="lab rx">React</p>
+<pre><span class="k">const</span> EngineCtx = createContext&lt;Engine | <span class="k">null</span>&gt;(<span class="k">null</span>);
+
+&lt;EngineCtx.Provider value={engine}&gt;
+  &lt;ConfigForm /&gt;
+&lt;/EngineCtx.Provider&gt;
+
+<span class="k">const</span> engine = useContext(EngineCtx);</pre>
+      </div>
+      <div>
+        <p class="lab ng">Angular</p>
+<pre id="diCode"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Engine -->
+  <section id="engine">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">plugin 陣列</span>→<span class="ng">PricingRule 介面</span></span>
+      <h2>定價引擎：Strategy Pattern 的實際樣子</h2>
+    </div>
+    <div class="prose">
+      <p>每條規則都實作同一個 <code>PricingRule</code> 介面，引擎只負責依 <code>order</code> 排序、過濾停用的規則，再把倍率依序乘上去。新增規則只需要多寫一個 class，日曆、表單和其他規則都不用改。</p>
+      <p>點日曆上任一天，看那一天的價格如何流過三條規則。數字是專案的預設值：基本房價 $100、週末 ×1.25、國定假日 ×1.5、旺季（6、7、8、12 月）×1.2。</p>
+    </div>
+    <figure class="fig">
+      <div class="eng">
+        <div>
+          <div class="cal-head">
+            <button type="button" class="navbtn" id="calPrev" aria-label="上個月">←</button>
+            <strong id="calTitle" aria-live="polite"></strong>
+            <button type="button" class="navbtn" id="calNext" aria-label="下個月">→</button>
+          </div>
+          <div class="cal" id="cal"></div>
+          <div class="rules-toggle">
+            <label class="toggle"><input type="checkbox" data-rule="weekend" checked> WeekendRule</label>
+            <label class="toggle"><input type="checkbox" data-rule="holiday" checked> HolidayRule</label>
+            <label class="toggle"><input type="checkbox" data-rule="peak" checked> PeakSeasonRule</label>
+          </div>
+        </div>
+        <div>
+          <p class="sel-info" id="selInfo"></p>
+          <div class="pipe" id="pipe"></div>
+        </div>
+      </div>
+      <p class="fig-cap">假日資料為 2026 年美國聯邦假日（專案透過 Nager.Date API 取得）。紅點 = 國定假日，灰底 = 週末，紅色價格 = 至少套用一條規則。關掉某條規則，整個月的價格會立即重算。</p>
+    </figure>
+    <div class="code-pair" style="margin-top:20px">
+      <div>
+        <p class="lab ng">pricing-rule.model.ts</p>
+<pre><span class="k">export interface</span> PricingRule {
+  name: string;
+  order: number;
+  enabled: boolean;
+  apply(ctx: PricingContext): PriceAdjustment | <span class="k">null</span>;
+}</pre>
+      </div>
+      <div>
+        <p class="lab ng">pricing-engine.service.ts · calculate()</p>
+<pre><span class="k">const</span> adjustments = <span class="k">this</span>.rules()
+  .filter((rule) =&gt; rule.enabled)
+  .map((rule) =&gt; rule.apply(context))
+  .filter((adj) =&gt; adj !== <span class="k">null</span>);
+
+<span class="k">const</span> finalRate = adjustments.reduce(
+  (rate, adj) =&gt; rate * adj.multiplier, baseRate);</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Template -->
+  <section id="template">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">JSX</span>→<span class="ng">Template</span></span>
+      <h2>模板語法對照</h2>
+    </div>
+    <div class="prose">
+      <p>JSX 是「在 JavaScript 裡寫標記」，Angular 模板則是「在 HTML 裡加上綁定」。記住三種括號就能讀懂大部分模板：<code>[屬性]</code> 是資料往下傳，<code>(事件)</code> 是事件往上傳，<code>{{ }}</code> 是插值。Angular 17 之後的 <code>@if</code>、<code>@for</code> 取代了舊的 <code>*ngIf</code>、<code>*ngFor</code>，新專案直接學新語法即可。</p>
+    </div>
+    <figure class="fig">
+      <div class="tabs" role="tablist" id="tplTabs"></div>
+      <div class="code-pair">
+        <div><p class="lab rx">React · JSX</p><pre id="tplR"></pre></div>
+        <div><p class="lab ng">Angular · Template</p><pre id="tplA"></pre></div>
+      </div>
+      <p class="tab-note" id="tplNote"></p>
+    </figure>
+  </section>
+
+  <!-- 6. Roadmap -->
+  <section id="roadmap">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">已經會的</span>→<span class="ng">要補的</span></span>
+      <h2>建議學習順序</h2>
+    </div>
+    <div class="prose"><p>這是我實際走過、事後覺得最順的順序。每一步都先找 React 裡的對應物，再看它在專案的哪個檔案出現。</p></div>
+    <ol class="road">
+      <li><span class="t">Standalone Component 與模板</span><span class="m"><span class="rx">function component + JSX</span><span class="f">rate-calendar.component.ts</span></span><span class="w">先學 <code>@Component</code> 的 selector、imports、template，以及 <code>@if</code> / <code>@for</code>。</span></li>
+      <li><span class="t">Signals：signal、computed、effect</span><span class="m"><span class="rx">useState / useMemo / useEffect</span><span class="f">pricing-engine.service.ts</span></span><span class="w">不用寫依賴陣列；讀取 signal 的當下就建立訂閱。</span></li>
+      <li><span class="t">Service 與 inject()</span><span class="m"><span class="rx">Context + custom hook</span><span class="f">holiday.service.ts</span></span><span class="w">狀態和商業邏輯放在 Service，元件只負責顯示。</span></li>
+      <li><span class="t">HttpClient 與錯誤處理</span><span class="m"><span class="rx">fetch / TanStack Query</span><span class="f">holiday.service.ts</span></span><span class="w">在 Service 裡 subscribe，把 loading、error、資料都轉成 signal 給元件讀。</span></li>
+      <li><span class="t">Reactive Forms</span><span class="m"><span class="rx">react-hook-form</span><span class="f">pricing-config-form.component.ts</span></span><span class="w"><code>FormGroup</code>、<code>FormControl</code> 與內建 <code>Validators</code>，複雜表單時差異最明顯。</span></li>
+      <li><span class="t">Router 與 lazy loading</span><span class="m"><span class="rx">React Router + lazy()</span><span class="f">app.routes.ts</span></span><span class="w"><code>loadComponent: () =&gt; import(…)</code> 就能拆出獨立的 chunk。</span></li>
+      <li><span class="t">RxJS 基礎，夠用就好</span><span class="m"><span class="rx">沒有直接對應</span><span class="f">HttpClient 回傳 Observable</span></span><span class="w">先會 <code>subscribe</code>、<code>pipe</code>、<code>map</code>、<code>switchMap</code>；簡單狀態交給 Signals。</span></li>
+      <li><span class="t">測試：TestBed 與 HttpTestingController</span><span class="m"><span class="rx">Testing Library + MSW</span><span class="f">*.spec.ts</span></span><span class="w">用 DI 把真實服務換成測試替身，不需要真的打 API。</span></li>
+    </ol>
+  </section>
+
+  <!-- 7. Pitfalls -->
+  <section id="pitfalls">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">錯誤訊息</span>→<span class="ng">學到的事</span></span>
+      <h2>踩坑紀錄</h2>
+    </div>
+    <div class="prose"><p>做這個專案時真正遇到的問題。每一個都附上當時的錯誤、原因和最後的解法。</p></div>
+    <div class="log">
+      <article class="entry"><span class="tag">環境</span><div>
+        <h4>最新版 Angular CLI 裝不起來</h4>
+        <code class="err">Node.js v22.22.2 — @angular/cli requires ≥ 22.22.3</code>
+        <p><b>解法：</b>改用 <code>npx @angular/cli@19 new</code>，把大版本鎖在 19。</p>
+        <p class="lesson">學到：Angular CLI 對 Node 版本有嚴格範圍，專案要在 README 註明版本。</p>
+      </div></article>
+      <article class="entry"><span class="tag">單元測試</span><div>
+        <h4>Vitest 跑不起 Angular 元件</h4>
+        <code class="err">ERR_MODULE_NOT_FOUND — @analogjs/vitest-angular × vitest@5</code>
+        <p><b>解法：</b>改用 <code>@analogjs/vite-plugin-angular</code>，自己寫 <code>test-setup.ts</code> 載入 zone.js 並初始化 TestBed 環境。</p>
+        <p class="lesson">學到：React 元件是純函式，直接 render 就能測；Angular 元件需要先初始化 TestBed 和編譯環境才能測。</p>
+      </div></article>
+      <article class="entry"><span class="tag">E2E</span><div>
+        <h4>Playwright 找不到瀏覽器</h4>
+        <code class="err">Executable doesn't exist — expected chromium revision 1243, installed 1194</code>
+        <p><b>解法：</b>本機用 <code>executablePath</code> 指向已安裝的 Chromium；CI 則正常執行 <code>playwright install</code>。</p>
+        <p class="lesson">學到：Playwright 版本和 Chromium revision 是一對一綁定的。</p>
+      </div></article>
+      <article class="entry"><span class="tag">Lint</span><div>
+        <h4>constructor 注入被 ESLint 擋下</h4>
+        <code class="err">@angular-eslint/prefer-inject</code>
+        <p><b>解法：</b><code>constructor(private http: HttpClient)</code> 改成 <code>private http = inject(HttpClient)</code>。</p>
+        <p class="lesson">學到：新版 Angular 慣用 <code>inject()</code>，寫起來和 React hooks 很像，也更好搭配 standalone。</p>
+      </div></article>
+      <article class="entry"><span class="tag">Lint</span><div>
+        <h4>空的 ngOnInit</h4>
+        <code class="err">@angular-eslint/no-empty-lifecycle-method</code>
+        <p><b>解法：</b>刪掉空的生命週期方法，假日資料的載入改用 <code>effect()</code> 跟著月份 signal 自動觸發。</p>
+        <p class="lesson">學到：有了 Signals，很多原本寫在 <code>ngOnInit</code> 的邏輯可以變成宣告式的 <code>effect</code>。</p>
+      </div></article>
+      <article class="entry"><span class="tag">E2E</span><div>
+        <h4>月份切換測試永遠失敗</h4>
+        <code class="err">expect(received).not.toBe(expected) — Expected: not "September 2026"</code>
+        <p><b>解法：</b>原本的測試前進 1 個月再後退 2 個月，斷言根本對不上。改成「前進 → 確認不同 → 後退 → 確認回到原月份」。</p>
+        <p class="lesson">學到：E2E 斷言要照著使用者真正的操作流程寫。</p>
+      </div></article>
+      <article class="entry"><span class="tag">CI</span><div>
+        <h4>本機測試全過，CI 卻失敗</h4>
+        <code class="err">MISSING DEPENDENCY — Cannot find dependency '@vitest/coverage-v8'</code>
+        <p><b>解法：</b>把 <code>@vitest/coverage-v8</code> 加進 devDependencies。第一次裝到了 5.x，搭配 vitest 4.x 直接報 <code>coverageFilesDirectory is required</code>，coverage 一直顯示 0%；改成和 vitest 同版本（4.1.11）後才得到真實的 93.75%。</p>
+        <p class="lesson">學到：CI 是完全乾淨的環境；外掛套件的版本要和主套件對齊，不然「有跑」不代表「有算」。</p>
+      </div></article>
+      <article class="entry"><span class="tag">資料流</span><div>
+        <h4>切換國家時，舊資料蓋掉新資料</h4>
+        <code class="err">US 請求還沒回來就切到 TW → US 回應晚到，畫面顯示 US 假日但選單是 TW</code>
+        <p><b>解法：</b>Service 記住「最新一次請求」的 key，只有最新的回應才寫進 signal；舊回應仍放進快取。另外加上 10 秒 timeout，換國家時也改由日曆的 <code>effect()</code> 重新載入「畫面上那一年」。</p>
+        <p class="lesson">學到：Signals 讓狀態好讀，但非同步回來的順序還是要自己處理。這三個 bug 都是先寫出會失敗的測試，才找到的。</p>
+      </div></article>
+      <article class="entry"><span class="tag">部署</span><div>
+        <h4>建置成功，部署卻被拒絕</h4>
+        <code class="err">Branch "main" is not allowed to deploy to github-pages due to environment protection rules.</code>
+        <p><b>解法：</b>開啟 Pages 時，GitHub 自動建立的 <code>github-pages</code> 環境只允許當時的預設分支部署。把 repo 預設分支改成 <code>main</code>，並把環境的部署規則改成 <code>main</code>。</p>
+        <p class="lesson">學到：能不能部署是 repo 設定的一部分，不在程式碼裡；看 workflow 失敗時要分清楚是 build 還是 deploy 那一步。</p>
+      </div></article>
+      <article class="entry"><span class="tag">Git</span><div>
+        <h4>PR 開不起來</h4>
+        <code class="err">The branch has no history in common with main</code>
+        <p><b>解法：</b>repo 原本只有 feature branch，後來建立的 <code>main</code> 沒有共同祖先；用 <code>git merge --allow-unrelated-histories</code> 建立共同歷史。</p>
+        <p class="lesson">學到：新 repo 應該先在 main 放一個初始 commit，再從它開分支。</p>
+      </div></article>
+    </div>
+
+    <h3 class="sub">React 開發者常見的誤區</h3>
+    <div class="myths">
+      <div class="myth"><b>照著舊教學寫 NgModule</b>Angular 19 預設 standalone，網路上很多教學還停在 NgModule 時代。</div>
+      <div class="myth"><b>什麼都用 RxJS</b>簡單狀態用 Signals 就好，RxJS 留給需要取消、合併、節流的非同步流程。</div>
+      <div class="myth"><b>在模板裡寫邏輯</b>該算的值用 <code>computed()</code> 在 class 裡算好，模板只負責綁定。</div>
+      <div class="myth"><b>把 effect() 當 useEffect 濫用</b>用來同步外部世界（API、DOM）；衍生資料應該用 <code>computed()</code>。</div>
+      <div class="myth"><b>忽略變更偵測策略</b>搭配 Signals 使用 <code>OnPush</code>，才能拿到精準更新的效能好處。</div>
+    </div>
+  </section>
+
+  <!-- 8. Milestones -->
+  <section id="milestones">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">commit</span>→<span class="ng">milestone</span></span>
+      <h2>專案里程碑</h2>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>54</b><span>單元測試（Vitest）</span></div>
+      <div class="stat"><b>6</b><span>E2E 流程（Playwright）</span></div>
+      <div class="stat"><b>3</b><span>可組合的定價規則</span></div>
+      <div class="stat"><b>6</b><span>CI jobs</span></div>
+    </div>
+    <ol class="tl">
+      <li><div class="when"><span>2026-09-20</span><code>91bc98e</code></div><p class="what">專案骨架</p><p class="det">Angular 19、Vitest、ESLint + Prettier、Playwright，以及 lint → typecheck → test → build → e2e 的 CI 管線。</p></li>
+      <li><div class="when"><span>2026-09-20</span><code>a8b4e59</code></div><p class="what">定價引擎與假日服務</p><p class="det">PricingRule 介面、三條規則、以 Signals 為核心的 PricingEngineService，加上 Nager.Date API 的 HolidayService 與快取。</p></li>
+      <li><div class="when"><span>2026-09-20</span><code>2ff5a7a</code></div><p class="what">日曆 UI</p><p class="det">42 格月曆、Reactive Forms 設定面板、價格明細，路由改為 lazy loading。</p></li>
+      <li><div class="when"><span>2026-09-20</span><code>330a90f</code></div><p class="what">E2E 測試</p><p class="det">四個使用者流程，用 <code>page.route()</code> 攔截假日 API，測試不依賴外部服務。</p></li>
+      <li><div class="when"><span>2026-09-20</span><code>c886e2e</code></div><p class="what">文件與部署</p><p class="det">README 架構說明、「如何新增規則」教學，以及 GitHub Pages 部署 workflow。</p></li>
+      <li><div class="when"><span>2026-09-22</span><code>5620f16</code></div><p class="what">上線前的驗證</p><p class="det">用對抗性測試找出三個資料流 bug（舊回應覆蓋、請求沒有 timeout、換國家載錯年份），修正 coverage 版本與兩個不可靠的 E2E 測試。單元測試從 41 增加到 53。</p></li>
+      <li><div class="when"><span>2026-09-23</span><code>e7bfe63</code></div><p class="what">部署到 GitHub Pages</p><p class="det">Merge 進 main 後自動建置並發布，線上網址：<a href="https://shueny.github.io/angular-rate-calendar/">shueny.github.io/angular-rate-calendar</a>。</p></li>
+    </ol>
+  </section>
+
+  <!-- 9. Agent -->
+  <section id="agent">
+    <div class="sec-head">
+      <span class="pair"><span class="rx">規則引擎</span>→<span class="ng">房價副駕駛</span></span>
+      <h2>下一步：營收經理的房價副駕駛</h2>
+    </div>
+    <p class="assume">這是這個 side project 的下一步構想，還沒有實作，內容也是我對這類產品的假設。如果真的要做成產品，第一件事是和實際調價的人一起確認痛點是否真的在這裡。</p>
+    <div class="prose">
+      <p>營收經理每天要看假日、淡旺季和訂房狀況來決定要不要調價。資訊分散，調一次價很花時間，而且調了之後會有什麼影響，當下很難知道。</p>
+      <p>我想做的不是一個會自己改價格的 AI，而是一個副駕駛：先幫忙查詢、解釋和模擬，等準確度和信任都建立起來，再一步步放權。這個專案的定價引擎就是它的地基，同一套規則可以同時給日曆和 Agent 使用，算出來的數字一定一致。</p>
+    </div>
+
+    <figure class="fig">
+      <p class="fig-title">四個自主程度，逐步放權</p>
+      <div class="ladder" role="tablist" id="agLadder"></div>
+      <div class="ag-body">
+        <dl class="facts" id="agFacts"></dl>
+        <div class="chat" id="agChat" aria-live="polite"></div>
+      </div>
+      <p class="fig-cap">對話示範用的是這個專案的預設規則與 2026 年 12 月的真實日曆。第 4 階段的「訂房速度」是概念示意，目前的專案還沒有這項資料。</p>
+    </figure>
+
+    <h3 class="sub">三個設計原則</h3>
+    <div class="principles">
+      <div class="principle"><b>每個價格都能解釋</b><p>回答一定附上套用了哪些規則、倍率各是多少。定價引擎本來就會回傳逐條的 adjustments，Agent 只是把它說成人話。</p></div>
+      <div class="principle"><b>寫入權限由架構控制</b><p>Agent 的工具分成唯讀、模擬、提案三層，沒有直接寫入的工具。真正套用設定的是經理按下的「核准」按鈕，不是靠 prompt 約束。</p></div>
+      <div class="principle"><b>放權要有數據支撐</b><p>每進到下一個階段，都要先證明上一階段的建議準確、而且真的有被採納。數據不好就回頭修，而不是繼續加功能。</p></div>
+    </div>
+
+    <h3 class="sub">如果要做成真的產品：30 / 60 / 90 天</h3>
+    <div class="phases">
+      <div class="phase"><div class="day">30</div><p class="ph">聽和看</p><ul><li>和營收經理、客服、業務各自深談</li><li>實際觀察一次完整的調價流程</li><li>找出最花時間、最常出錯的一個環節</li><li>了解現有資料品質與 API</li></ul></div>
+      <div class="phase"><div class="day">60</div><p class="ph">最小可行版本</p><ul><li>只做第 1、2 階段：問答與模擬，不寫入</li><li>找 2～3 位願意試用的經理</li><li>建立 eval：用真實問題量測回答與計算的正確率</li></ul></div>
+      <div class="phase"><div class="day">90</div><p class="ph">用數據決定下一步</p><ul><li>檢視省下的時間、採納率、錯誤率</li><li>指標達標才進入第 3 階段：提案 + 核准</li><li>沒達標就修正問題，不加新功能</li></ul></div>
+    </div>
+
+    <h3 class="sub">我會追蹤的指標</h3>
+    <ul class="metrics">
+      <li><span class="k">效率</span><span class="v">每次調價決策花的時間</span><span class="n">和導入前比較，最直接的價值。</span></li>
+      <li><span class="k">品質</span><span class="v">價格計算錯誤率：必須是 0</span><span class="n">加上建議被採納的比例。價格算錯一次，信任就沒了。</span></li>
+      <li><span class="k">信任</span><span class="v">回訪率與覆核頻率</span><span class="n">經理會不會主動回來用，還是每個答案都要再手算一次。</span></li>
+      <li><span class="k">商業</span><span class="v">RevPAR（每間可售房營收）</span><span class="n">需要較長時間才看得出來，當作長期指標。</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    <p class="closing">Angular 不是比 React 難，而是<em>第一週就要碰到 13 個概念</em>，React 則把這些成本分散到之後。學完之後，大型專案的一致性與可維護性會好管理很多。</p>
+    <p class="muted">線上 Demo：<a href="https://shueny.github.io/angular-rate-calendar/">shueny.github.io/angular-rate-calendar</a> · 原始碼：<a href="https://github.com/shueny/angular-rate-calendar">github.com/shueny/angular-rate-calendar</a></p>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var STEP = RM ? 0 : 170;
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function later(fn, ms){ if(ms<=0){ fn(); } else { setTimeout(fn, ms); } }
+
+  /* ---------- Signals graph ---------- */
+  var nodes = {
+    config:{x:20,y:20,label:'config',kind:'signal'},
+    holidays:{x:221,y:20,label:'holidays',kind:'signal'},
+    selectedDate:{x:422,y:20,label:'selectedDate',kind:'signal'},
+    rules:{x:20,y:120,label:'rules',kind:'computed'},
+    holidayMap:{x:221,y:120,label:'holidayMap',kind:'computed'},
+    days:{x:120,y:220,label:'days',kind:'computed'},
+    detail:{x:360,y:220,label:'detail',kind:'computed'},
+    grid:{x:120,y:320,label:'日曆格 ×42',kind:'template'},
+    panel:{x:360,y:320,label:'明細面板',kind:'template'}
+  };
+  var W=118,H=44;
+  var edges = [['config','rules'],['holidays','holidayMap'],['rules','days'],['holidayMap','days'],['rules','detail'],['holidayMap','detail'],['selectedDate','detail'],['days','grid'],['detail','panel']];
+  var svg = document.getElementById('sgSvg');
+  var edgeEls = [];
+  edges.forEach(function(e){
+    var a=nodes[e[0]], b=nodes[e[1]];
+    var x1=a.x+W/2, y1=a.y+H, x2=b.x+W/2, y2=b.y, my=(y1+y2)/2;
+    var p=document.createElementNS(SVGNS,'path');
+    p.setAttribute('d','M'+x1+' '+y1+' C'+x1+' '+my+' '+x2+' '+my+' '+x2+' '+y2);
+    p.setAttribute('class','edge');
+    svg.appendChild(p);
+    edgeEls.push({from:e[0],to:e[1],el:p});
+  });
+  Object.keys(nodes).forEach(function(k){
+    var n=nodes[k];
+    var g=document.createElementNS(SVGNS,'g');
+    g.setAttribute('class','node n-'+(n.kind==='template'?'view':n.kind));
+    var r=document.createElementNS(SVGNS,'rect');
+    r.setAttribute('x',n.x);r.setAttribute('y',n.y);r.setAttribute('width',W);r.setAttribute('height',H);r.setAttribute('rx',8);
+    var t=document.createElementNS(SVGNS,'text');
+    t.setAttribute('x',n.x+11);t.setAttribute('y',n.y+19);t.setAttribute('class','t-label');t.textContent=n.label;
+    var s=document.createElementNS(SVGNS,'text');
+    s.setAttribute('x',n.x+11);s.setAttribute('y',n.y+35);s.setAttribute('class','t-kind');
+    s.textContent = n.kind==='signal'?'signal()':(n.kind==='computed'?'computed()':'template');
+    var c=document.createElementNS(SVGNS,'text');
+    c.setAttribute('x',n.x+W-10);c.setAttribute('y',n.y+35);c.setAttribute('class','t-count');c.setAttribute('text-anchor','end');c.textContent='0';
+    g.appendChild(r);g.appendChild(t);g.appendChild(s);g.appendChild(c);
+    svg.appendChild(g);
+    n.g=g;n.countEl=c;n.count=0;
+  });
+
+  var rCells = document.getElementById('rCells');
+  for(var i=0;i<42;i++){ rCells.appendChild(document.createElement('i')); }
+  var rNodes = {};
+  document.querySelectorAll('#rTree .rnode').forEach(function(el){ rNodes[el.dataset.c]={el:el,b:el.querySelector('b'),count:0}; });
+  var rDepth = {root:0,form:1,grid:1,detail:1,cell:2};
+
+  function propagate(source){
+    var depth={}; depth[source]=0; var queue=[source];
+    while(queue.length){
+      var cur=queue.shift();
+      edges.forEach(function(e){ if(e[0]===cur && depth[e[1]]===undefined){ depth[e[1]]=depth[cur]+1; queue.push(e[1]); } });
+    }
+    Object.keys(depth).forEach(function(k){
+      later(function(){
+        var n=nodes[k];
+        n.count++; n.countEl.textContent=String(n.count);
+        n.g.classList.add('hot');
+        later(function(){ n.g.classList.remove('hot'); }, RM?0:650);
+      }, depth[k]*STEP);
+    });
+    edgeEls.forEach(function(e){
+      if(depth[e.from]!==undefined && depth[e.to]===depth[e.from]+1){
+        later(function(){ e.el.classList.add('hot'); later(function(){ e.el.classList.remove('hot'); }, RM?0:520); }, depth[e.from]*STEP);
+      }
+    });
+    Object.keys(rNodes).forEach(function(k){
+      later(function(){
+        var r=rNodes[k];
+        r.count += (k==='cell'?42:1);
+        r.b.textContent = String(r.count);
+        r.el.classList.add('hot');
+        if(k==='cell') rCells.classList.add('hot');
+        later(function(){ r.el.classList.remove('hot'); if(k==='cell') rCells.classList.remove('hot'); }, RM?0:650);
+      }, rDepth[k]*STEP);
+    });
+    return depth;
+  }
+
+  var report=document.getElementById('sgReport');
+  var labels={rules:'rules',holidayMap:'holidayMap',days:'days',detail:'detail',grid:'日曆格',panel:'明細面板'};
+  function writeReport(what, depth){
+    var hit=Object.keys(depth).filter(function(k){return depth[k]>0;}).sort(function(a,b){return depth[a]-depth[b];});
+    var gridHit = depth.grid!==undefined;
+    report.innerHTML='';
+    var b=document.createElement('b'); b.textContent='本次更新 · '+what; report.appendChild(b);
+    var a=document.createElement('span'); a.innerHTML='<span class="ng">Angular</span> 重新計算：'+hit.map(function(k){return labels[k];}).join(' → ');
+    var r=document.createElement('span'); r.innerHTML='<span class="rx">React</span> 重新 render：RateCalendar 以下全部，共 46 個元件';
+    var v=document.createElement('span'); v.className='muted';
+    v.textContent = gridHit ? '兩邊的日曆格都需要更新，因為每一天的價格真的變了。' : '日曆格的價格沒變：Angular 完全沒碰它，React 卻把 42 格全部重跑一次。';
+    report.appendChild(a); report.appendChild(r); report.appendChild(v);
+  }
+
+  var baseIn=document.getElementById('sgBase'), baseOut=document.getElementById('sgBaseOut');
+  var lastFire=0, pending=null;
+  baseIn.addEventListener('input', function(){
+    baseOut.textContent='$'+baseIn.value;
+    var now=Date.now();
+    var fire=function(){ lastFire=Date.now(); writeReport('config.baseRate = '+baseIn.value, propagate('config')); };
+    if(now-lastFire>350){ fire(); } else { clearTimeout(pending); pending=setTimeout(fire, 350-(now-lastFire)); }
+  });
+  document.querySelectorAll('[data-cc]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(btn.getAttribute('aria-pressed')==='true') return;
+      document.querySelectorAll('[data-cc]').forEach(function(o){o.setAttribute('aria-pressed', String(o===btn));});
+      writeReport('countryCode = '+btn.dataset.cc, propagate('holidays'));
+    });
+  });
+  var sgDates=['2026-12-25','2026-12-26','2026-07-03','2026-09-22','2026-11-26'], sgIdx=0;
+  document.getElementById('sgDate').addEventListener('click', function(){
+    sgIdx=(sgIdx+1)%sgDates.length;
+    writeReport('selectedDate = '+sgDates[sgIdx], propagate('selectedDate'));
+  });
+
+  /* ---------- DI ---------- */
+  var diLocal=document.getElementById('diLocal');
+  var calProvs=document.getElementById('calProvs');
+  var rootProv=document.getElementById('rootProv');
+  var diLog=document.getElementById('diLog');
+  var diCode=document.getElementById('diCode');
+  var levels={form:document.querySelector('[data-lv="form"]'),detail:document.querySelector('[data-lv="detail"]'),cal:document.querySelector('[data-lv="cal"]'),root:document.querySelector('[data-lv="root"]')};
+  var names={form:'PricingConfigFormComponent',detail:'PriceDetailComponent',cal:'RateCalendarComponent',root:'Root EnvironmentInjector'};
+  var diBusy=false;
+  function renderDiCode(){
+    var local=diLocal.checked;
+    diCode.innerHTML =
+      '<span class="k">@Component</span>({\n  selector: \'app-rate-calendar\',\n' +
+      (local ? '  providers: [PricingEngineService], <span class="c">// 元件層級</span>\n' : '  <span class="c">// 沒有 providers → 使用 root 單例</span>\n') +
+      '})\n<span class="k">export class</span> RateCalendarComponent {}\n\n' +
+      '<span class="c">// 子元件</span>\n<span class="k">private</span> engine = inject(PricingEngineService);';
+  }
+  function renderCalProvs(){
+    calProvs.innerHTML='';
+    var chip=document.createElement('span');
+    if(diLocal.checked){ chip.className='chip svc'; chip.id='calProv'; chip.textContent='PricingEngineService #2'; }
+    else { chip.className='chip none'; chip.textContent='沒有 providers'; }
+    calProvs.appendChild(chip);
+  }
+  function resetGot(){
+    ['form','detail'].forEach(function(k){ var g=document.getElementById('got-'+k); g.textContent='尚未注入'; g.classList.remove('has'); });
+  }
+  function logLine(html){
+    var first=diLog.querySelector('.empty'); if(first) first.remove();
+    var li=document.createElement('li'); li.innerHTML=html; diLog.appendChild(li);
+  }
+  function clearMarks(){
+    Object.keys(levels).forEach(function(k){ levels[k].classList.remove('probe','asker'); });
+    document.querySelectorAll('#di .chip.found').forEach(function(c){c.classList.remove('found');});
+  }
+  diLocal.addEventListener('change', function(){
+    renderCalProvs(); renderDiCode(); resetGot(); clearMarks();
+    diLog.innerHTML='<li class="empty">'+(diLocal.checked?'RateCalendar 現在有自己的 provider，再試一次注入。':'已移除元件層級的 provider，再試一次注入。')+'</li>';
+  });
+  document.querySelectorAll('[data-ask]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(diBusy) return; diBusy=true;
+      var who=btn.dataset.ask;
+      clearMarks(); diLog.innerHTML='';
+      var path=[who,'cal','root'];
+      var d = RM?0:620;
+      levels[who].classList.add('asker');
+      logLine('<code>'+names[who]+'</code> 呼叫 <code>inject(PricingEngineService)</code>');
+      var step=function(i){
+        if(i>0) levels[path[i-1]].classList.remove('probe');
+        var lv=path[i];
+        levels[lv].classList.add('probe');
+        var foundHere = (lv==='cal' && diLocal.checked) || lv==='root';
+        if(!foundHere){
+          logLine('查 <code>'+names[lv]+'</code>：沒有 provider，往上一層');
+          later(function(){ step(i+1); }, d);
+          return;
+        }
+        var id = lv==='root' ? '#1' : '#2';
+        var chip = lv==='root' ? rootProv : document.getElementById('calProv');
+        if(chip) chip.classList.add('found');
+        logLine('在 <code>'+names[lv]+'</code> 找到，取得 <b class="ng">PricingEngineService '+id+'</b>');
+        var got=document.getElementById('got-'+who); got.textContent='→ PricingEngineService '+id; got.classList.add('has');
+        var other=document.getElementById('got-'+(who==='form'?'detail':'form'));
+        if(other.classList.contains('has')){
+          var same = other.textContent.indexOf(id)>-1;
+          logLine(same ? '兩個子元件拿到<b>同一個</b>實例，狀態共享。' : '兩個子元件拿到不同實例（provider 設定在注入之間被改過）。');
+        }
+        later(function(){ levels[lv].classList.remove('probe'); diBusy=false; }, d);
+      };
+      later(function(){ step(0); }, d/2);
+    });
+  });
+  renderDiCode();
+
+  /* ---------- Pricing engine ---------- */
+  var CONFIG={baseRate:100,weekendMultiplier:1.25,holidayMultiplier:1.5,peakSeasonMultiplier:1.2,peakSeasonMonths:[6,7,8,12]};
+  var HOL={
+    '2026-01-01':"New Year's Day",'2026-01-19':'Martin Luther King, Jr. Day','2026-02-16':"Washington's Birthday",
+    '2026-05-25':'Memorial Day','2026-06-19':'Juneteenth','2026-07-03':'Independence Day（補假）',
+    '2026-09-07':'Labor Day','2026-10-12':'Columbus Day','2026-11-11':'Veterans Day',
+    '2026-11-26':'Thanksgiving Day','2026-12-25':'Christmas Day'
+  };
+  var enabled={weekend:true,holiday:true,peak:true};
+  var YEAR=2026, month=11, selected=new Date(2026,11,25);
+  function pad(n){return n<10?'0'+n:''+n;}
+  function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+  function money(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:2});}
+  function calc(d){
+    var dow=d.getDay(), isWe=dow===0||dow===6, hol=HOL[iso(d)], m=d.getMonth()+1;
+    var stages=[
+      {key:'weekend',name:'WeekendRule',order:1,mult:CONFIG.weekendMultiplier,cond:'條件：星期六或星期日',applies:isWe},
+      {key:'holiday',name:'HolidayRule',order:2,mult:CONFIG.holidayMultiplier,cond:'條件：國定假日'+(hol?'（'+hol+'）':''),applies:!!hol},
+      {key:'peak',name:'PeakSeasonRule',order:3,mult:CONFIG.peakSeasonMultiplier,cond:'條件：6、7、8、12 月',applies:CONFIG.peakSeasonMonths.indexOf(m)>-1}
+    ];
+    var rate=CONFIG.baseRate;
+    stages.forEach(function(s){ s.enabled=enabled[s.key]; if(s.enabled&&s.applies){ rate*=s.mult; } s.running=Math.round(rate*100)/100; });
+    return {stages:stages,final:Math.round(rate*100)/100,isWe:isWe,hol:hol};
+  }
+  var calEl=document.getElementById('cal'), titleEl=document.getElementById('calTitle');
+  var prevBtn=document.getElementById('calPrev'), nextBtn=document.getElementById('calNext');
+  var WD=['日','一','二','三','四','五','六'];
+  function renderCal(){
+    calEl.innerHTML='';
+    WD.forEach(function(w){ var h=document.createElement('div'); h.className='wd'; h.textContent=w; calEl.appendChild(h); });
+    var first=new Date(YEAR,month,1);
+    var start=new Date(YEAR,month,1-first.getDay());
+    for(var i=0;i<42;i++){
+      var d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
+      var r=calc(d);
+      var b=document.createElement('button');
+      b.type='button';
+      var cls=['d'];
+      if(d.getMonth()!==month) cls.push('out');
+      if(r.isWe) cls.push('we');
+      if(r.hol) cls.push('hol');
+      if(r.final!==CONFIG.baseRate) cls.push('up');
+      if(iso(d)===iso(selected)) cls.push('sel');
+      b.className=cls.join(' ');
+      b.dataset.iso=iso(d);
+      b.setAttribute('aria-label',(d.getMonth()+1)+' 月 '+d.getDate()+' 日，'+money(r.final)+(r.hol?'，'+r.hol:''));
+      b.innerHTML='<span class="n">'+d.getDate()+'</span><span class="p">'+money(r.final)+'</span>';
+      calEl.appendChild(b);
+    }
+    var peak=CONFIG.peakSeasonMonths.indexOf(month+1)>-1;
+    titleEl.innerHTML=YEAR+' 年 '+(month+1)+' 月'+(peak?'<span class="peak-tag">旺季 ×'+CONFIG.peakSeasonMultiplier+'</span>':'');
+    prevBtn.disabled=month===0; nextBtn.disabled=month===11;
+  }
+  var pipeEl=document.getElementById('pipe'), selInfo=document.getElementById('selInfo');
+  var pipeTimers=[];
+  function renderPipe(animate){
+    pipeTimers.forEach(clearTimeout); pipeTimers=[];
+    var r=calc(selected);
+    var wd=WD[selected.getDay()];
+    selInfo.textContent=(selected.getMonth()+1)+' 月 '+selected.getDate()+' 日（星期'+wd+'）'+(r.hol?' · '+r.hol:'');
+    pipeEl.innerHTML='';
+    var start=document.createElement('div'); start.className='end';
+    start.innerHTML='<span>基本房價 baseRate</span><b>'+money(CONFIG.baseRate)+'</b>';
+    pipeEl.appendChild(start);
+    var stageEls=r.stages.map(function(s){
+      var el=document.createElement('div');
+      var state=!s.enabled?'off':(s.applies?'apply':'skip');
+      el.className='stage '+state;
+      var res = state==='off' ? '已停用，不參與計算' : (state==='apply' ? '套用 ×'+s.mult+' → '+money(s.running) : '條件不符，回傳 null → '+money(s.running));
+      el.innerHTML='<div class="top"><span class="nm">'+s.name+'</span><span class="od">order '+s.order+'</span></div><p class="cond">'+s.cond+'</p><span class="res">'+res+'</span>';
+      pipeEl.appendChild(el);
+      return el;
+    });
+    var fin=document.createElement('div'); fin.className='end final';
+    fin.innerHTML='<span>最終房價 finalRate</span><b>'+money(r.final)+'</b>';
+    pipeEl.appendChild(fin);
+    if(!animate||RM){ stageEls.forEach(function(e){e.classList.add('lit');}); return; }
+    stageEls.forEach(function(e,i){ pipeTimers.push(setTimeout(function(){ e.classList.add('lit'); }, 160+i*230)); });
+  }
+  calEl.addEventListener('click', function(e){
+    var b=e.target.closest('button.d'); if(!b) return;
+    var p=b.dataset.iso.split('-');
+    selected=new Date(+p[0],+p[1]-1,+p[2]);
+    if(selected.getMonth()!==month && selected.getFullYear()===YEAR){ month=selected.getMonth(); }
+    renderCal(); renderPipe(true);
+    var again=calEl.querySelector('[data-iso="'+b.dataset.iso+'"]'); if(again) again.focus();
+  });
+  prevBtn.addEventListener('click', function(){ if(month>0){ month--; renderCal(); } });
+  nextBtn.addEventListener('click', function(){ if(month<11){ month++; renderCal(); } });
+  document.querySelectorAll('[data-rule]').forEach(function(cb){
+    cb.addEventListener('change', function(){ enabled[cb.dataset.rule]=cb.checked; renderCal(); renderPipe(true); });
+  });
+  renderCal(); renderPipe(false);
+
+  /* ---------- Agent autonomy ladder ---------- */
+  var AG=[
+    {lv:1,name:'問答',can:'回答價格相關問題，並解釋每個價格套用了哪些規則。',who:'經理',risk:['無，唯讀','r0'],tools:['get_rates','get_holidays'],
+     chat:
+      '<div class="msg u">12 月 25 日為什麼是 $180？</div>'+
+      '<div class="tcall">→ <b>get_rates</b>({ from: "2026-12-25", to: "2026-12-25" })</div>'+
+      '<div class="msg a">12/25 是聖誕節，又在旺季月份，所以套用了兩條規則：<br><span class="calc">$100 × 1.5（假日）× 1.2（旺季）= $180</span><br>當天是星期五，所以週末規則沒有套用。</div>'},
+    {lv:2,name:'模擬',can:'試算規則調整後的價格變化，完全不寫入設定。',who:'經理',risk:['無，不寫入','r0'],tools:['simulate_pricing_change'],
+     chat:
+      '<div class="msg u">如果假日倍率從 1.5 調到 1.8，12 月會怎樣？</div>'+
+      '<div class="tcall">→ <b>simulate_pricing_change</b>({ patch: { holidayMultiplier: 1.8 }, from: "2026-12-01", to: "2026-12-31" })</div>'+
+      '<div class="msg a">12 月只有一天國定假日受影響：<br><span class="calc">12/25　$180 → $216（+$36）</span><br><span class="calc">全月平均　$129.68 → $130.84（+$1.16）</span><br>影響很小。如果目的是拉高 12 月營收，調整週末倍率的效果會比較明顯，要我試算嗎？</div>'},
+    {lv:3,name:'提案',can:'主動提出調整建議，附上理由與影響範圍，由經理核准後才套用。',who:'經理按核准',risk:['低，必須人工核准','r1'],tools:['propose_pricing_config'],
+     chat:
+      '<div class="msg u">好，幫我看週末倍率要怎麼調。</div>'+
+      '<div class="tcall">→ <b>simulate_pricing_change</b>({ patch: { weekendMultiplier: 1.35 }, … })</div>'+
+      '<div class="tcall">→ <b>propose_pricing_config</b>({ patch: { weekendMultiplier: 1.35 }, reason: "…" })</div>'+
+      '<div class="prop" data-kind="prop"><h5>變更提案 · 等待核准</h5>'+
+        '<div class="diff">weekendMultiplier　1.25 → 1.35<br>12 月週末　$150 → $162（8 天）<br>全月平均　$129.68 → $132.77</div>'+
+        '<div class="acts"><button type="button" class="btn primary" data-act="approve">核准並套用</button><button type="button" class="btn" data-act="reject">退回</button></div>'+
+        '<span class="st" hidden></span></div>'},
+    {lv:4,name:'有邊界的自動化',can:'在經理預先設定的範圍內自動微調，每次變更都留紀錄、可以一鍵撤回。',who:'規則 + 經理監督',risk:['中，有上下限、可撤回','r1'],tools:['propose_pricing_config','auto_apply（有範圍限制）'],
+     chat:
+      '<div class="msg u" style="opacity:.8">（經理預先設定）週末倍率可在 1.25～1.40 之間自動調整。</div>'+
+      '<div class="msg a">12/19–12/20 的訂房速度比平常快，已在允許範圍內自動調整：<br><span class="calc">weekendMultiplier　1.25 → 1.30</span><br><span class="calc">12/19、12/20　$150 → $156</span></div>'+
+      '<div class="prop done" data-kind="auto"><h5>自動套用紀錄</h5>'+
+        '<div class="diff">在範圍 1.25～1.40 內 · 2026-12-14 09:00</div>'+
+        '<div class="acts"><button type="button" class="btn" data-act="undo">撤回這次調整</button></div>'+
+        '<span class="st">已自動套用</span></div>'}
+  ];
+  var ladderEl=document.getElementById('agLadder'), factsEl=document.getElementById('agFacts'), chatEl=document.getElementById('agChat');
+  function showStage(i){
+    var s=AG[i];
+    Array.prototype.forEach.call(ladderEl.children,function(b,j){ b.setAttribute('aria-selected',String(j===i)); b.tabIndex=j===i?0:-1; });
+    factsEl.innerHTML=
+      '<div><dt>能做什麼</dt><dd>'+s.can+'</dd></div>'+
+      '<div><dt>誰做決定</dt><dd>'+s.who+'</dd></div>'+
+      '<div><dt>風險</dt><dd><span class="pill '+s.risk[1]+'">'+s.risk[0]+'</span></dd></div>'+
+      '<div><dt>使用的工具</dt><dd>'+s.tools.map(function(t){return '<code>'+t+'</code>';}).join('、')+'</dd></div>';
+    chatEl.innerHTML='<span class="chat-lab">對話示範 · 第 '+s.lv+' 階段</span>'+s.chat;
+  }
+  AG.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.type='button'; b.setAttribute('role','tab');
+    var meter=''; for(var k=1;k<=4;k++){ meter+='<i'+(k<=s.lv?' class="on"':'')+'></i>'; }
+    b.innerHTML='<span class="lv">第 '+s.lv+' 階段</span><span class="nm">'+s.name+'</span><span class="meter" aria-hidden="true">'+meter+'</span>';
+    b.addEventListener('click',function(){ showStage(i); });
+    b.addEventListener('keydown',function(e){
+      if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return;
+      var j=(i+(e.key==='ArrowRight'?1:-1)+AG.length)%AG.length;
+      showStage(j); ladderEl.children[j].focus();
+    });
+    ladderEl.appendChild(b);
+  });
+  chatEl.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-act]'); if(!btn) return;
+    var card=btn.closest('.prop'), st=card.querySelector('.st'), acts=card.querySelector('.acts'), h=card.querySelector('h5');
+    var act=btn.dataset.act;
+    if(act==='approve'){ card.classList.add('done'); h.textContent='變更提案 · 已核准'; st.textContent='經理已核准，設定已套用，日曆價格同步更新。'; }
+    else if(act==='reject'){ card.classList.add('back'); h.textContent='變更提案 · 已退回'; st.textContent='已退回，設定沒有任何變動。'; }
+    else if(act==='undo'){ card.classList.remove('done'); card.classList.add('back'); h.textContent='自動套用紀錄 · 已撤回'; st.textContent='已撤回，週末倍率回到 1.25。'; }
+    st.hidden=false; acts.remove();
+  });
+  showStage(2);
+
+  /* ---------- Template tabs ---------- */
+  var TPL=[
+    {id:'if',label:'條件渲染',
+     r:"{selected && (\n  <PriceDetail result={result} />\n)}",
+     a:"@if (selectedDate()) {\n  <app-price-detail [result]=\"selectedResult()\" />\n} @else {\n  <p>點選一天查看明細</p>\n}",
+     note:'@if 內建 @else 與 @else if，不需要三元運算子。注意 signal 在模板裡要加括號呼叫：selectedDate()。'},
+    {id:'for',label:'列表',
+     r:"{days.map((day) => (\n  <DayCell key={day.iso} day={day} />\n))}",
+     a:"@for (day of days(); track day.iso) {\n  <button class=\"day-cell\">{{ day.date.getDate() }}</button>\n} @empty {\n  <p>沒有資料</p>\n}",
+     note:'track 等同 React 的 key，而且是必填。@empty 處理空陣列，不用另外寫判斷。'},
+    {id:'event',label:'事件',
+     r:"<button onClick={() => selectDay(day)}>\n  {day.date.getDate()}\n</button>",
+     a:"<button (click)=\"selectDay(day)\">\n  {{ day.date.getDate() }}\n</button>",
+     note:'小括號 ( ) 代表事件：資料從模板往 class 流。直接寫呼叫式，不需要包一層箭頭函式。'},
+    {id:'bind',label:'屬性與 class',
+     r:"<button\n  className={clsx('day', {\n    weekend: day.isWeekend,\n    selected: day.iso === selectedIso,\n  })}\n  disabled={day.outOfMonth}\n/>",
+     a:"<button\n  class=\"day\"\n  [class.weekend]=\"day.isWeekend\"\n  [class.selected]=\"day.iso === selectedIso()\"\n  [disabled]=\"day.outOfMonth\"\n></button>",
+     note:'中括號 [ ] 代表屬性綁定：資料從 class 往模板流。[class.xxx] 可以逐一切換 class，不需要 clsx。'},
+    {id:'io',label:'Props 與回呼',
+     r:"function PriceDetail({ result, onClose }: Props) {\n  return <button onClick={onClose}>關閉</button>;\n}\n\n<PriceDetail result={r} onClose={() => setSel(null)} />",
+     a:"export class PriceDetailComponent {\n  result = input.required<PricingResult>();\n  close = output<void>();\n}\n\n<app-price-detail [result]=\"r\" (close)=\"clear()\" />",
+     note:'input() 是 signal 版的 @Input；output() 取代 @Output + EventEmitter。父元件同樣用 [ ] 傳入、( ) 接收。'},
+    {id:'form',label:'表單',
+     r:"const { register, handleSubmit } = useForm();\n\n<form onSubmit={handleSubmit(apply)}>\n  <input type=\"number\"\n    {...register('baseRate', { required: true, min: 1 })} />\n</form>",
+     a:"form = new FormGroup({\n  baseRate: new FormControl(100,\n    [Validators.required, Validators.min(1)]),\n});\n\n<form [formGroup]=\"form\" (ngSubmit)=\"apply()\">\n  <input type=\"number\" formControlName=\"baseRate\" />\n</form>",
+     note:'Reactive Forms 把表單結構定義在 class 裡，驗證器、錯誤狀態、dirty/touched 都內建。'}
+  ];
+  var tabsEl=document.getElementById('tplTabs'), tR=document.getElementById('tplR'), tA=document.getElementById('tplA'), tN=document.getElementById('tplNote');
+  function showTab(id){
+    TPL.forEach(function(t){
+      var b=document.getElementById('tab-'+t.id);
+      b.setAttribute('aria-selected', String(t.id===id));
+      b.tabIndex = t.id===id ? 0 : -1;
+      if(t.id===id){ tR.textContent=t.r; tA.textContent=t.a; tN.textContent=t.note; }
+    });
+  }
+  TPL.forEach(function(t,i){
+    var b=document.createElement('button');
+    b.type='button'; b.id='tab-'+t.id; b.setAttribute('role','tab'); b.textContent=t.label;
+    b.addEventListener('click', function(){ showTab(t.id); });
+    b.addEventListener('keydown', function(e){
+      if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return;
+      var j=(i+(e.key==='ArrowRight'?1:-1)+TPL.length)%TPL.length;
+      showTab(TPL[j].id); document.getElementById('tab-'+TPL[j].id).focus();
+    });
+    tabsEl.appendChild(b);
+  });
+  showTab('if');
+})();
+</script>
+</body>
+</html>

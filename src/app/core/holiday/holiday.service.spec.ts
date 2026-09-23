@@ -124,6 +124,76 @@ describe('HolidayService', () => {
     req.flush([]);
   });
 
+  it('should handle a country with no public holidays', () => {
+    service.setCountryCode('TW');
+    service.loadHolidays(2025);
+    httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/TW').flush([]);
+
+    expect(service.holidays()).toEqual([]);
+    expect(service.error()).toBeNull();
+    expect(service.loading()).toBe(false);
+  });
+
+  it('should ignore a stale response that arrives after a newer request', () => {
+    service.loadHolidays(2025);
+    const staleUs = httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/US');
+
+    service.setCountryCode('TW');
+    service.loadHolidays(2025);
+    httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/TW').flush([]);
+    staleUs.flush(mockHolidays);
+
+    expect(service.holidays()).toEqual([]);
+    expect(service.loading()).toBe(false);
+  });
+
+  it('should keep loading when a stale request finishes before the latest one', () => {
+    service.loadHolidays(2025);
+    const staleUs = httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/US');
+
+    service.setCountryCode('TW');
+    service.loadHolidays(2025);
+    const latestTw = httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/TW');
+
+    staleUs.flush(mockHolidays);
+    expect(service.loading()).toBe(true);
+    expect(service.holidays()).toEqual([]);
+
+    latestTw.flush([]);
+    expect(service.loading()).toBe(false);
+  });
+
+  it('should still cache a stale response for later use', () => {
+    service.loadHolidays(2025);
+    const staleUs = httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/US');
+    service.setCountryCode('TW');
+    service.loadHolidays(2025);
+    httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/TW').flush([]);
+    staleUs.flush(mockHolidays);
+
+    service.setCountryCode('US');
+    service.loadHolidays(2025);
+    httpMock.expectNone('https://date.nager.at/api/v3/PublicHolidays/2025/US');
+    expect(service.holidays()).toHaveLength(2);
+  });
+
+  it('should time out a request that never responds', () => {
+    vi.useFakeTimers();
+    try {
+      service.loadHolidays(2025);
+      const req = httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/US');
+
+      vi.advanceTimersByTime(10_000);
+
+      expect(req.cancelled).toBe(true);
+      expect(service.error()).toBe('Request timed out. Please try again.');
+      expect(service.loading()).toBe(false);
+      expect(service.holidays()).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('should fetch separately for different years', () => {
     service.loadHolidays(2025);
     httpMock.expectOne('https://date.nager.at/api/v3/PublicHolidays/2025/US').flush(mockHolidays);

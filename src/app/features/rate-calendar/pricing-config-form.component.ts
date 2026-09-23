@@ -140,8 +140,8 @@ export class PricingConfigFormComponent implements OnInit {
     const { countryCode, ...pricingConfig } = this.form.value;
     this.pricingEngine.updateConfig(pricingConfig);
     if (countryCode !== this.holidayService.countryCode()) {
+      // RateCalendarComponent's effect reloads holidays for the displayed year.
       this.holidayService.setCountryCode(countryCode);
-      this.holidayService.loadHolidays(new Date().getFullYear());
     }
   }
 }
