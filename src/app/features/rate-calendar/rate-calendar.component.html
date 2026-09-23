@@ -1,0 +1,51 @@
+<div class="rate-calendar">
+  <div class="calendar-header">
+    <button class="nav-btn" (click)="prevMonth()" aria-label="Previous month">&larr;</button>
+    <h2>{{ monthLabel() }}</h2>
+    <button class="nav-btn" (click)="nextMonth()" aria-label="Next month">&rarr;</button>
+  </div>
+
+  @if (holidayLoading()) {
+    <div class="loading-bar" aria-label="Loading holidays">Loading holidays...</div>
+  }
+
+  @if (holidayError(); as error) {
+    <div class="error-bar" role="alert">{{ error }}</div>
+  }
+
+  <div class="calendar-grid" role="grid" aria-label="Rate calendar">
+    <div class="weekday-row">
+      @for (day of weekdays; track day) {
+        <div class="weekday-header" role="columnheader">{{ day }}</div>
+      }
+    </div>
+
+    <div class="days-grid">
+      @for (day of calendarDays(); track day.date.getTime()) {
+        <button
+          class="day-cell"
+          [class.out-of-month]="!day.inMonth"
+          [class.weekend]="day.date.getDay() === 0 || day.date.getDay() === 6"
+          [class.holiday]="day.isHoliday"
+          [class.today]="day.isToday"
+          [class.selected]="selectedDay()?.date?.getTime() === day.date.getTime()"
+          [class.has-adjustment]="day.pricing.adjustments.length > 0"
+          (click)="selectDay(day)"
+          [attr.aria-label]="day.date.toLocaleDateString() + ': $' + day.pricing.finalRate"
+        >
+          <span class="day-number">{{ day.date.getDate() }}</span>
+          <span class="day-price">${{ day.pricing.finalRate }}</span>
+          @if (day.isHoliday) {
+            <span class="holiday-dot" [title]="day.holidayName ?? ''"></span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (selectedDay(); as day) {
+    <app-price-detail [day]="day" />
+  }
+
+  <app-pricing-config-form />
+</div>

@@ -1,0 +1,175 @@
+.rate-calendar {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+}
+
+.nav-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.loading-bar {
+  text-align: center;
+  padding: 8px;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.error-bar {
+  text-align: center;
+  padding: 8px;
+  color: #d32f2f;
+  background: #fde8e8;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+}
+
+.calendar-grid {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.weekday-header {
+  text-align: center;
+  padding: 10px 4px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  min-height: 70px;
+  border: none;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: #f8f8f8;
+  }
+
+  &.out-of-month {
+    opacity: 0.35;
+  }
+
+  &.weekend {
+    background-color: #fafafa;
+  }
+
+  &.holiday {
+    background-color: #fff8e1;
+  }
+
+  &.today {
+    .day-number {
+      background: #1976d2;
+      color: #fff;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  &.selected {
+    outline: 2px solid #1976d2;
+    outline-offset: -2px;
+    background-color: #e3f2fd;
+  }
+
+  &.has-adjustment .day-price {
+    color: #e65100;
+    font-weight: 600;
+  }
+}
+
+.day-number {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.day-price {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.holiday-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f44336;
+}
+
+@media (max-width: 600px) {
+  .rate-calendar {
+    padding: 8px;
+  }
+
+  .day-cell {
+    min-height: 56px;
+    padding: 4px 2px;
+  }
+
+  .day-price {
+    font-size: 0.65rem;
+  }
+
+  .calendar-header h2 {
+    font-size: 1.1rem;
+  }
+}

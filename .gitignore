@@ -1,0 +1,34 @@
+# Compiled output
+/dist
+/tmp
+/out-tsc
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+*.sublime-workspace
+
+# Angular
+/.angular/cache
+.sass-cache/
+
+# Testing
+/coverage
+/playwright-report
+/test-results
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
