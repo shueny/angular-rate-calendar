@@ -117,6 +117,15 @@ test.describe('Rate Calendar', () => {
     await expect(priceDetail).not.toBeVisible();
   });
 
+  test('should open the learning notes page from the header link', async ({ page }) => {
+    await page.click('.learning-link');
+
+    await expect(page).toHaveURL(/\/learning\/$/);
+    await expect(page).toHaveTitle('從 React 到 Angular');
+    await expect(page.locator('h1')).toContainText('Angular');
+    await expect(page.locator('#sgSvg .node')).toHaveCount(9);
+  });
+
   test('should show an error and keep base prices when the holiday API fails', async ({ page }) => {
     await page.route('**/api/v3/PublicHolidays/**', (route) =>
       route.fulfill({ status: 500, body: 'Internal Server Error' }),
