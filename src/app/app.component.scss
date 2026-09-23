@@ -14,11 +14,14 @@
     font-size: 0.95rem;
   }
 
-  .learning-link {
-    display: inline-block;
-    margin-top: 8px;
+  .learning {
+    margin: 8px 0 0;
     font-size: 0.9rem;
-    color: #1976d2;
+    color: #666;
+
+    a {
+      color: #1976d2;
+    }
   }
 }
 

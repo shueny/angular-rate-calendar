@@ -2,7 +2,7 @@
 
 A configurable hotel rate pricing engine with a calendar UI, built with Angular 19.
 
-**[Live Demo](https://shueny.github.io/angular-rate-calendar/)** · **[Learning notes: React → Angular](https://shueny.github.io/angular-rate-calendar/learning/)** (interactive diagrams, in Traditional Chinese)
+**[Live Demo](https://shueny.github.io/angular-rate-calendar/)** · **[Learning notes: From React to Angular](https://shueny.github.io/angular-rate-calendar/learning/en/)** (interactive diagrams; also in [Traditional Chinese](https://shueny.github.io/angular-rate-calendar/learning/))
 
 ## Motivation
 

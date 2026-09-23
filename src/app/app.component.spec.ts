@@ -10,13 +10,17 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
-  it('should link to the learning notes page relative to the base href', () => {
+  it('should link to both learning notes pages relative to the base href', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
 
-    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.learning-link');
-    expect(link.getAttribute('href')).toBe('learning/');
-    expect(link.textContent).toContain('從 React 到 Angular');
+    const zh: HTMLAnchorElement = fixture.nativeElement.querySelector('.learning-link');
+    expect(zh.getAttribute('href')).toBe('learning/');
+    expect(zh.textContent).toContain('從 React 到 Angular');
+
+    const en: HTMLAnchorElement = fixture.nativeElement.querySelector('.learning-link-en');
+    expect(en.getAttribute('href')).toBe('learning/en/');
+    expect(en.textContent).toContain('From React to Angular');
   });
 
   it('should create the app', () => {
