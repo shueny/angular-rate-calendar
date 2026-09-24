@@ -23,6 +23,7 @@ export interface DemoEvent {
   id: number;
   country: string;
   year: number;
+  url: string;
   status?: number;
   count?: number;
 }
@@ -53,7 +54,7 @@ export class DemoHttpHandler extends HttpHandler implements OnDestroy {
 
     return new Observable<HttpEvent<unknown>>((subscriber) => {
       const id = this.nextId++;
-      const base = { id, country, year };
+      const base = { id, country, year, url: req.urlWithParams };
       const { latencyMs, outcome } = this.plan(country, year);
       const request: LiveRequest = { subscriber };
       let settled = false;

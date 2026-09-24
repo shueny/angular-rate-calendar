@@ -1,89 +1,177 @@
-<section class="hiw-chapter" aria-labelledby="pricing-title">
+<section class="hiw-chapter" aria-labelledby="ch1-title">
   <header class="hiw-chapter-head">
-    <p class="hiw-num">01</p>
-    <h3 id="pricing-title">{{ t().title }}</h3>
-    <p>{{ t().intro }}</p>
+    <span class="hiw-kicker">{{ t().ch1.kicker }}</span>
+    <h3 id="ch1-title">{{ t().ch1.title }}</h3>
+    <p>{{ t().ch1.lede }}</p>
   </header>
 
-  <figure class="hiw-fig">
-    <p class="hiw-label">{{ t().pickDay }}</p>
-    <div class="hiw-chips" role="group" [attr.aria-label]="t().pickDay">
-      @for (p of presets; track p.id) {
-        <button
-          type="button"
-          class="hiw-btn preset"
-          [attr.aria-pressed]="p.id === preset().id"
-          (click)="pick(p)"
-        >
-          <span>{{ formatDate(p.date) }}</span>
-          <small>{{ t().tags[p.tag] }}</small>
-        </button>
-      }
-    </div>
-
-    <div class="body">
-      <ol class="pipeline" #pipeline>
-        <li class="step base">
-          <span>{{ t().base }}</span>
-          <strong>{{ result().baseRate | currency: 'USD' }}</strong>
-        </li>
-        @for (s of steps(); track s.name) {
-          <li
-            class="step rule"
-            [class.applied]="s.adjustment"
-            [style.animation-delay.ms]="($index + 1) * 350"
+  <figure class="hiw-fig" [appAutoplay]="timeline">
+    <div class="hiw-fig-head">
+      <span class="hiw-fig-label">{{ t().ch1.fig }}</span>
+      <div class="hiw-chips" role="group" [attr.aria-label]="t().f1.day">
+        @for (p of presets; track p.id) {
+          <button
+            type="button"
+            class="hiw-chip"
+            [attr.aria-pressed]="p.id === preset().id"
+            (click)="pickPreset(p)"
           >
-            <div class="rule-head">
-              <strong>{{ s.name }}</strong>
-              @if (s.adjustment) {
-                <span class="out"
-                  >×{{ s.adjustment.multiplier }} → {{ s.total | currency: 'USD' }}</span
-                >
-              } @else {
-                <span class="out">{{ t().skipped }}</span>
-              }
-            </div>
-            <code class="hiw-code" [title]="s.file">{{ s.guard }}</code>
-          </li>
+            {{ p.chip[lang() === 'zh' ? 1 : 0] }}
+          </button>
         }
-        <li class="step final" [style.animation-delay.ms]="(steps().length + 1) * 350">
-          <span>{{ t().final }}</span>
-          <strong>{{ result().finalRate | currency: 'USD' }}</strong>
-        </li>
-      </ol>
-
-      <div class="side">
-        <p class="hiw-label">{{ t().contextTitle }}</p>
-        <code class="hiw-code context">
-          <span>{{ '{' }}</span>
-          @for (line of context(); track line) {
-            <span class="indent">{{ line }},</span>
-          }
-          <span>{{ '}' }}</span>
-        </code>
-
-        <p class="hiw-label">{{ t().tune }}</p>
-        @for (c of controls; track c.key) {
-          <div class="control">
-            <label [for]="'pr-' + c.key">{{ t().controls[c.key] }}</label>
-            <input
-              type="range"
-              [id]="'pr-' + c.key"
-              [min]="c.min"
-              [max]="c.max"
-              [step]="c.step"
-              [value]="engine.config()[c.key]"
-              (input)="setConfig(c.key, $event)"
-            />
-            <output [for]="'pr-' + c.key">{{ engine.config()[c.key] }}</output>
-          </div>
-        }
-        <button type="button" class="hiw-btn" (click)="replay()">↻ {{ t().replay }}</button>
       </div>
     </div>
 
-    <figcaption>{{ t().caption }}</figcaption>
-  </figure>
+    <div class="hiw-stage">
+      <svg class="hiw-svg" [attr.viewBox]="frame().vb" role="img" [attr.aria-label]="caption()">
+        <rect
+          [attr.x]="frame().belt.x"
+          [attr.y]="frame().belt.y"
+          [attr.width]="frame().belt.w"
+          [attr.height]="frame().belt.h"
+          rx="8"
+          fill="#ecebe5"
+        />
+        <path
+          [attr.d]="frame().beltLine"
+          stroke="#d6d3cb"
+          stroke-width="2"
+          stroke-dasharray="4 10"
+          [attr.stroke-dashoffset]="frame().beltOffset"
+          fill="none"
+        />
+        @for (b of frame().bypass; track $index) {
+          <path
+            [attr.d]="b.d"
+            fill="none"
+            [attr.stroke]="b.stroke"
+            stroke-width="1.5"
+            stroke-dasharray="3 5"
+            stroke-linecap="round"
+          />
+        }
+        @for (g of frame().gates; track $index) {
+          <g class="gate" [attr.data-state]="g.state" [attr.opacity]="g.op">
+            <rect
+              [attr.x]="g.x"
+              [attr.y]="g.y"
+              width="76"
+              height="76"
+              rx="8"
+              fill="#ffffff"
+              [attr.stroke]="g.stroke"
+              stroke-width="2"
+            />
+            <rect
+              [attr.x]="g.dx"
+              [attr.y]="g.dy"
+              width="64"
+              [attr.height]="g.dh"
+              rx="4"
+              [attr.fill]="g.door"
+            />
+          </g>
+        }
+        <rect
+          [attr.x]="frame().cell.x"
+          [attr.y]="frame().cell.y"
+          [attr.width]="frame().cell.s"
+          [attr.height]="frame().cell.s"
+          rx="8"
+          fill="#ffffff"
+          [attr.stroke]="frame().cell.stroke"
+          stroke-width="1.5"
+        />
+        <path [attr.d]="frame().cell.sep" stroke="#e2e0da" stroke-width="1" />
+        <circle
+          [attr.cx]="frame().cell.rcx"
+          [attr.cy]="frame().cell.rcy"
+          [attr.r]="frame().cell.rr"
+          fill="none"
+          stroke="#1b7f4b"
+          stroke-width="2"
+          [attr.opacity]="frame().cell.rop"
+        />
+        <g [attr.transform]="frame().tag" [attr.opacity]="frame().tagOp">
+          <rect
+            x="-44"
+            y="-18"
+            width="88"
+            height="36"
+            rx="6"
+            fill="#ffffff"
+            stroke="#1d1d1f"
+            stroke-width="1.5"
+          />
+          <circle cx="-32" cy="0" r="3" fill="none" stroke="#1d1d1f" stroke-width="1.2" />
+        </g>
+        <g [attr.transform]="frame().badge" [attr.opacity]="frame().badgeOp">
+          <rect x="-28" y="-11" width="56" height="22" rx="11" fill="#1b7f4b" />
+        </g>
+        @for (tx of frame().texts; track $index) {
+          <text
+            [attr.x]="tx.x"
+            [attr.y]="tx.y"
+            [attr.text-anchor]="tx.anchor ?? 'middle'"
+            [attr.font-size]="tx.size"
+            [attr.font-weight]="tx.weight ?? null"
+            [attr.letter-spacing]="tx.ls ?? null"
+            [attr.fill]="tx.fill"
+            [attr.opacity]="tx.op ?? null"
+            [attr.transform]="tx.transform ?? null"
+            [class.sans]="tx.sans"
+          >
+            {{ tx.text }}
+          </text>
+        }
+      </svg>
+    </div>
 
-  <p class="hiw-takeaway">{{ t().takeaway }}</p>
+    <div class="hiw-sliders">
+      @for (s of sliders(); track s.key) {
+        <label class="hiw-slider">
+          <span class="hiw-slider-label">
+            <span>{{ s.label }}</span>
+            <b>{{ s.text }}</b>
+          </span>
+          <input
+            type="range"
+            [id]="'f1-' + s.key"
+            [min]="s.min"
+            [max]="s.max"
+            [step]="s.step"
+            [value]="s.value"
+            (change)="setConfig(s.key, $event)"
+          />
+        </label>
+      }
+    </div>
+
+    <app-player [timeline]="timeline" [caption]="caption()" [lang]="lang()" />
+
+    <div class="hiw-details">
+      <button
+        type="button"
+        class="hiw-details-toggle"
+        [attr.aria-expanded]="open()"
+        (click)="open.set(!open())"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+        {{ open() ? t().hideDetails : t().details }}
+      </button>
+      @if (open()) {
+        <pre class="hiw-pre">{{ code() }}</pre>
+      }
+    </div>
+  </figure>
 </section>

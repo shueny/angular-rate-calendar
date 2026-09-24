@@ -28,8 +28,10 @@ src/app/
     │   ├── rate-calendar.component.ts   # Calendar grid + month nav
     │   ├── pricing-config-form.component.ts # Reactive Forms config panel
     │   └── price-detail.component.ts    # Price breakdown overlay
-    └── how-it-works/                # Interactive system-design walkthrough (EN / 中文)
-        ├── chapters/                    # Pricing pipeline, signals graph, network scenarios
+    └── how-it-works/                # Animated system-design walkthrough (EN / 中文)
+        ├── hero-map.component.ts        # FIG. 0: system map with live links
+        ├── chapters/                    # FIG. 1–4: pricing conveyor, signal graph, holiday requests, agent concept
+        ├── motion/                      # Timeline, shared player (play/step/scrub/speed), autoplay, reduced motion
         └── demo-http-handler.ts         # Simulated API (latency, errors, timeouts)
 ```
 
@@ -41,7 +43,7 @@ src/app/
 
 - **`features/rate-calendar`** — UI layer consumes Signals from both services. It doesn't know about HTTP or rule internals.
 
-- **`features/how-it-works`** — Explains the design with live diagrams. Each chapter runs its own instance of the real `PricingEngineService` / `HolidayService`; the holiday service is fed by a simulated `HttpHandler` so latency, server errors, timeouts and out-of-order responses can be replayed on demand.
+- **`features/how-it-works`** — Explains the design with animated, scrubbable figures. Every figure is a pure function of a timeline, so play, step, scrub and speed come for free. The numbers are real: the pricing and signal figures run their own instances of `PricingEngineService` / `HolidayService`, and each network scenario is first run against the real `HolidayService` (fed by a simulated `HttpHandler`), so holiday counts, error messages, what gets cached and which response is ignored all come from the actual code. Chapter 04 (an AI co-pilot) is a clearly labelled concept.
 
 ## How to Add a New Pricing Rule
 

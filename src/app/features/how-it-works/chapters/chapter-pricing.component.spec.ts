@@ -3,74 +3,97 @@ import { ChapterPricingComponent, PRICING_PRESETS } from './chapter-pricing.comp
 
 describe('ChapterPricingComponent', () => {
   let fixture: ComponentFixture<ChapterPricingComponent>;
-  let component: ChapterPricingComponent;
+  let c: ChapterPricingComponent;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [ChapterPricingComponent] });
     fixture = TestBed.createComponent(ChapterPricingComponent);
     fixture.componentRef.setInput('lang', 'en');
-    component = fixture.componentInstance;
+    c = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it.each(PRICING_PRESETS.map((p) => [p.id, p] as const))(
-    '%s: the running total ends at the engine result',
-    (_, preset) => {
-      component.pick(preset);
-      const steps = component.steps();
-      const expected = component.engine.calculate(
-        preset.date,
-        preset.holiday !== undefined,
-        preset.holiday,
-      );
+  const texts = () => c.frame().texts.map((t) => t.text);
+  const at = (ms: number) => {
+    c.timeline.seek(ms);
+    fixture.detectChanges();
+    return c.frame();
+  };
 
-      expect(steps.map((s) => s.name)).toEqual(component.engine.rules().map((r) => r.name));
-      expect(steps.at(-1)!.total).toBeCloseTo(expected.finalRate, 2);
-      expect(steps.filter((s) => s.adjustment)).toHaveLength(expected.adjustments.length);
+  it.each(PRICING_PRESETS.map((p) => [p.id, p] as const))(
+    '%s: the pipeline ends at the engine’s own answer',
+    (_, p) => {
+      c.pickPreset(p);
+      const expected = c.engine.calculate(p.date, p.holiday !== undefined, p.holiday);
+      const m = c.model();
+      expect(m.final).toBe(expected.finalRate);
+      expect(m.prices[3]).toBeCloseTo(expected.finalRate, 2);
+      expect(m.rules.filter((r) => r.applies)).toHaveLength(expected.adjustments.length);
     },
   );
 
-  it('shows which rules apply for Christmas', () => {
-    component.pick(PRICING_PRESETS.find((p) => p.id === 'xmas')!);
-    fixture.detectChanges();
-
-    const el: HTMLElement = fixture.nativeElement;
-    const rules = [...el.querySelectorAll('.step.rule')];
-    expect(rules.map((r) => r.classList.contains('applied'))).toEqual([false, true, true]);
-    expect(rules[0].textContent).toContain('returned null');
-    expect(el.querySelector('.step.final')?.textContent).toContain('$180.00');
-  });
-
-  it('recomputes when a slider changes the config', () => {
-    const input: HTMLInputElement = fixture.nativeElement.querySelector('#pr-baseRate');
-    input.value = '200';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.result().finalRate).toBe(450);
-    expect(fixture.nativeElement.querySelector('.step.final').textContent).toContain('$450.00');
-  });
-
-  it('shows the context every rule receives', () => {
-    expect(component.context()).toEqual([
-      'isWeekend: true',
-      'isHoliday: true',
-      "holidayName: 'Independence Day'",
-      'month: 7',
+  it('narrates Christmas: weekend skipped, holiday and peak applied, $180 stamped', () => {
+    expect(c.captions().map((b) => b[0])).toEqual([
+      'Start from the base rate: $100',
+      'Weekend? No → skipped',
+      'Holiday? Yes → ×1.50',
+      'Peak season? Yes → ×1.20',
+      'Stamp $180 onto Fri, Dec 25',
     ]);
+    const end = at(c.timeline.total());
+    expect(end.gates.map((g) => g.state)).toEqual(['skip', 'open', 'open']);
+    expect(texts()).toContain('$180');
+    expect(end.cell.stroke).toBe('#1d1d1f');
   });
 
-  it('restarts the step animations on replay and when a day is picked', () => {
-    const animation = { cancel: vi.fn(), play: vi.fn() };
-    const ol: HTMLElement = fixture.nativeElement.querySelector('.pipeline');
-    const getAnimations = vi.fn(() => [animation]);
-    Object.assign(ol, { getAnimations });
+  it('shows the gate checking the day midway through its step', () => {
+    const f = at(700 + 0.4 * 1600);
+    expect(f.gates[0].state).toBe('check');
+    expect(f.gates[1].state).toBe('idle');
+    expect(texts()).toContain('$100');
+  });
 
-    component.replay();
-    component.pick(PRICING_PRESETS[0]);
+  it('counts the price up as a rule applies', () => {
+    at(700 + 1600 + 0.75 * 1600);
+    const price = c
+      .frame()
+      .texts.find((t) => t.size === 15 && t.text.startsWith('$') && t.fill === '#1d1d1f');
+    const value = Number(price!.text.slice(1));
+    expect(value).toBeGreaterThan(100);
+    expect(value).toBeLessThan(150);
+  });
 
-    expect(getAnimations).toHaveBeenCalledWith({ subtree: true });
-    expect(animation.cancel).toHaveBeenCalledTimes(2);
-    expect(animation.play).toHaveBeenCalledTimes(2);
+  it('recomputes and replays when a slider changes the real config', () => {
+    at(3000);
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('#f1-baseRate');
+    input.value = '200';
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(c.engine.config().baseRate).toBe(200);
+    expect(c.model().final).toBe(360);
+    expect(c.timeline.t()).toBe(0);
+  });
+
+  it('replays when another day is picked', () => {
+    at(5000);
+    (fixture.nativeElement.querySelector('.hiw-chip') as HTMLElement).click();
+    fixture.detectChanges();
+    expect(c.preset().id).toBe('mar10');
+    expect(c.timeline.t()).toBe(0);
+    expect(c.captions()[4][0]).toBe('Stamp $100 onto Tue, Mar 10');
+  });
+
+  it('shows the real guard clauses in the details', () => {
+    fixture.nativeElement.querySelector('.hiw-details-toggle').click();
+    fixture.detectChanges();
+    const pre = fixture.nativeElement.querySelector('.hiw-pre').textContent;
+    expect(pre).toContain('if (!context.isWeekend) return null;');
+    expect(pre).toContain('if (!this.peakMonths.includes(month)) return null;');
+  });
+
+  it('speaks Chinese', () => {
+    fixture.componentRef.setInput('lang', 'zh');
+    fixture.detectChanges();
+    expect(c.caption()).toBe('從基本房價開始：$100');
+    expect(fixture.nativeElement.textContent).toContain('一天的房價是怎麼算出來的？');
   });
 });

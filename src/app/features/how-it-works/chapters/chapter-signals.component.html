@@ -1,117 +1,212 @@
-<section class="hiw-chapter" aria-labelledby="signals-title">
+<section class="hiw-chapter" aria-labelledby="ch2-title">
   <header class="hiw-chapter-head">
-    <p class="hiw-num">02</p>
-    <h3 id="signals-title">{{ t().title }}</h3>
-    <p>{{ t().intro }}</p>
+    <span class="hiw-kicker">{{ t().ch2.kicker }}</span>
+    <h3 id="ch2-title">{{ t().ch2.title }}</h3>
+    <p>{{ t().ch2.lede }}</p>
   </header>
 
-  <figure class="hiw-fig">
+  <figure class="hiw-fig" [appAutoplay]="timeline">
+    <div class="hiw-fig-head">
+      <span class="hiw-fig-label">{{ t().ch2.fig }}</span>
+      <span class="hint">{{ t().f2.hint }}</span>
+    </div>
     <div class="toolbar">
-      <div class="control">
-        <label for="sig-base">{{ t().base }}</label>
+      <label class="base">
+        <span class="hiw-mini">{{ t().f2.base }}</span>
         <input
-          id="sig-base"
+          id="f2-base"
           type="range"
-          min="50"
-          max="300"
-          step="10"
-          [value]="engine.config().baseRate"
-          (input)="setBase($event)"
+          min="60"
+          max="200"
+          step="5"
+          [value]="baseValue()"
+          (input)="onBaseInput($event)"
         />
-        <output for="sig-base">{{
-          engine.config().baseRate | currency: 'USD' : 'symbol' : '1.0-0'
-        }}</output>
-      </div>
-      <div class="hiw-chips" role="group" [attr.aria-label]="t().country">
-        <span class="hiw-label">{{ t().country }}</span>
-        @for (c of countries; track c) {
-          <button
-            type="button"
-            class="hiw-btn country"
-            [attr.aria-pressed]="holidays.countryCode() === c"
-            (click)="setCountry(c)"
-          >
-            {{ c }}
-          </button>
-        }
+        <b>${{ baseValue() }}</b>
+      </label>
+      <div class="country">
+        <span class="hiw-mini">{{ t().f2.country }}</span>
+        <div class="seg" role="group" [attr.aria-label]="t().f2.country">
+          @for (c of countries; track c) {
+            <button
+              type="button"
+              [attr.aria-pressed]="holidays.countryCode() === c"
+              (click)="setCountry(c)"
+            >
+              {{ c }}
+            </button>
+          }
+        </div>
       </div>
     </div>
 
-    <svg class="graph" viewBox="0 0 640 250" role="img" [attr.aria-label]="t().graphLabel">
-      @for (e of edges; track e.d) {
-        <path class="edge" [class.lit]="lit().has(e.from) && lit().has(e.to)" [attr.d]="e.d" />
-      }
-      @for (n of nodes; track n.id) {
-        <g
-          class="node"
-          [attr.data-node]="n.id"
-          [class.lit]="lit().has(n.id)"
-          [class.computed]="n.kind === 'computed'"
-          [attr.transform]="'translate(' + n.x + ',' + n.y + ')'"
-        >
-          <title>{{ n.id }}: {{ t().runs(counts()[n.id]) }}</title>
-          <rect [attr.width]="nodeW" [attr.height]="nodeH" rx="10" />
-          <text x="12" y="21" class="name">{{ n.id }}</text>
-          <text x="12" y="39" class="kind">
-            {{ n.kind === 'signal' ? t().signal : t().computed }}
-          </text>
-          <text [attr.x]="nodeW - 12" y="21" text-anchor="end" class="count">
-            ×{{ counts()[n.id] }}
-          </text>
-        </g>
-      }
-    </svg>
+    <div class="hiw-stage body">
+      <div class="graph">
+        <svg class="hiw-svg" [attr.viewBox]="frame().vb" role="img" [attr.aria-label]="caption()">
+          @for (e of frame().edges; track $index) {
+            <g [attr.opacity]="e.op">
+              <path
+                [attr.d]="e.d"
+                fill="none"
+                [attr.stroke]="e.stroke"
+                stroke-width="1.5"
+                [attr.opacity]="e.baseOp"
+              />
+              <path
+                [attr.d]="e.d"
+                pathLength="100"
+                fill="none"
+                stroke="#1976d2"
+                stroke-width="8"
+                stroke-linecap="round"
+                stroke-dasharray="14 100"
+                [attr.stroke-dashoffset]="e.offset"
+                [attr.opacity]="e.glow"
+              />
+              <path
+                [attr.d]="e.d"
+                pathLength="100"
+                fill="none"
+                stroke="#1976d2"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-dasharray="14 100"
+                [attr.stroke-dashoffset]="e.offset"
+                [attr.opacity]="e.pop"
+              />
+            </g>
+          }
+          @for (n of frame().nodes; track n.id) {
+            <g class="node" [attr.data-node]="n.id" [class.lit]="n.lit" [attr.opacity]="n.op">
+              <rect
+                [attr.x]="n.ring.x"
+                [attr.y]="n.ring.y"
+                [attr.width]="n.ring.w"
+                [attr.height]="n.ring.h"
+                rx="12"
+                fill="none"
+                stroke="#1976d2"
+                stroke-width="2"
+                [attr.opacity]="n.ring.op"
+              />
+              <rect
+                [attr.x]="n.x"
+                [attr.y]="n.y"
+                [attr.width]="n.w"
+                [attr.height]="n.h"
+                rx="8"
+                [attr.fill]="n.fill"
+                [attr.stroke]="n.stroke"
+                stroke-width="1.5"
+                [attr.stroke-dasharray]="n.dash"
+              />
+              <rect
+                [attr.x]="n.x"
+                [attr.y]="n.y"
+                [attr.width]="n.w"
+                [attr.height]="n.h"
+                rx="8"
+                fill="#1976d2"
+                [attr.opacity]="n.shimmer"
+              />
+              <circle
+                [attr.cx]="n.counter.cx"
+                [attr.cy]="n.counter.cy"
+                [attr.r]="n.counter.r"
+                [attr.fill]="n.counter.fill"
+                [attr.stroke]="n.counter.stroke"
+                stroke-width="1.2"
+              />
+            </g>
+          }
+          @for (tx of frame().texts; track $index) {
+            <text
+              [attr.x]="tx.x"
+              [attr.y]="tx.y"
+              [attr.text-anchor]="tx.anchor ?? 'middle'"
+              [attr.font-size]="tx.size"
+              [attr.font-weight]="tx.weight ?? null"
+              [attr.letter-spacing]="tx.ls ?? null"
+              [attr.fill]="tx.fill"
+              [attr.opacity]="tx.op ?? null"
+            >
+              {{ tx.text }}
+            </text>
+          }
+        </svg>
+        <div class="legend">
+          <span><i></i>{{ t().f2.legendSignal }}</span>
+          <span><i class="dashed"></i>{{ t().f2.legendComputed }}</span>
+        </div>
+      </div>
 
-    <p class="report" aria-live="polite">
-      @if (holidays.loading()) {
-        {{ t().loading }}
-      } @else {
-        @if (report(); as r) {
-          <strong>{{ t().reran }}:</strong> {{ r.reran.join(', ') || '—' }} ·
-          <strong>{{ t().untouched }}:</strong> {{ r.untouched.join(', ') || '—' }} ·
-          <span class="changed-count">{{ t().changed(r.changed, days().length) }}</span>
-        } @else {
-          {{ t().idle }}
-        }
-      }
-    </p>
-
-    <div class="cal">
-      @for (w of t().weekdays; track $index) {
-        <span class="wd">{{ w }}</span>
-      }
-      @for (b of leadingBlanks; track b) {
-        <span></span>
-      }
-      @for (cell of days(); track flashKey() + '-' + cell.day) {
-        <button
-          type="button"
-          class="cell"
-          [class.weekend]="cell.weekend"
-          [class.holiday]="cell.holiday"
-          [class.changed]="changedDays().has(cell.day)"
-          [attr.aria-pressed]="isSelected(cell.day)"
-          [attr.aria-label]="formatDay(cell.day) + ' ' + (cell.holiday ?? '') + ' $' + cell.price"
-          (click)="select(cell.day)"
-        >
-          <span class="d">{{ cell.day }}</span>
-          <span class="p">{{ cell.price | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
-        </button>
-      }
+      <div class="cal">
+        <div class="cal-head">
+          <span class="hiw-mini strong">{{ t().f2.calTitle }}</span>
+          <span class="hiw-mini">{{ frame().country }}</span>
+        </div>
+        <div class="grid">
+          @for (w of t().f2.weekdays; track $index) {
+            <span class="wd">{{ w }}</span>
+          }
+          @for (b of frame().lead; track b) {
+            <span></span>
+          }
+          @for (c of frame().cells; track c.day) {
+            <button
+              type="button"
+              class="cell"
+              [class.weekend]="c.weekend"
+              [class.holiday]="c.holiday"
+              [attr.aria-pressed]="c.selected"
+              [attr.aria-label]="c.label"
+              [style.background]="c.flash"
+              (click)="select(c.day)"
+            >
+              <span class="d">{{ c.day }}</span>
+              <span class="p">{{ c.price }}</span>
+            </button>
+          }
+        </div>
+        <div class="detail"><b>detail()</b> {{ frame().detail }}</div>
+      </div>
     </div>
 
-    <p class="detail">
-      <span class="hiw-label">{{ t().selected }}</span>
-      {{ formatDay(selectedDate().getDate()) }}
-      @if (holidays.getHolidayName(selectedDate()); as name) {
-        · {{ name }}
-      }
-      · <strong>{{ detail().finalRate | currency: 'USD' }}</strong>
-      <span class="hint">{{ t().pickDay }}</span>
-    </p>
+    <div class="result">
+      <span
+        ><b class="accent">{{ t().f2.reran }}:</b> {{ result().reran }}</span
+      >
+      <span
+        ><b>{{ t().f2.untouched }}:</b> {{ result().untouched }}</span
+      >
+      <span class="changed">{{ result().changed }}</span>
+    </div>
 
-    <figcaption>{{ t().caption }} {{ t().footnote }}</figcaption>
+    <app-player [timeline]="timeline" [caption]="caption()" [lang]="lang()" />
+
+    <div class="hiw-details">
+      <button
+        type="button"
+        class="hiw-details-toggle"
+        [attr.aria-expanded]="open()"
+        (click)="open.set(!open())"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+        {{ open() ? t().hideDetails : t().details }}
+      </button>
+      @if (open()) {
+        <pre class="hiw-pre">{{ code }}</pre>
+      }
+    </div>
   </figure>
-
-  <p class="hiw-takeaway">{{ t().takeaway }}</p>
 </section>
