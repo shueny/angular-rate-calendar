@@ -114,4 +114,4 @@ All API calls are intercepted with `page.route()` in e2e to avoid external depen
 
 ## License
 
-MIT
+[MIT](LICENSE) © 2026 Shueny
