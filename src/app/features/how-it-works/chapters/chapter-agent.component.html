@@ -1,0 +1,157 @@
+<section class="hiw-chapter" aria-labelledby="ch4-title">
+  <header class="hiw-chapter-head">
+    <div class="hiw-kicker-row">
+      <span class="hiw-kicker">{{ t().ch4.kicker }}</span>
+      <span class="hiw-concept">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path
+            d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+          />
+          <path d="M9 18h6" />
+          <path d="M10 22h4" />
+        </svg>
+        {{ t().concept }}
+      </span>
+    </div>
+    <h3 id="ch4-title">{{ t().ch4.title }}</h3>
+    <p>{{ t().ch4.lede }}</p>
+  </header>
+
+  <figure class="hiw-fig" [appAutoplay]="timeline">
+    <div class="hiw-fig-head">
+      <span class="hiw-fig-label">
+        {{ t().ch4.fig }}
+        <span class="hiw-concept-inline">{{ t().conceptShort }}</span>
+      </span>
+      <span class="hiw-flow">{{ t().ch4.flow }}</span>
+    </div>
+
+    <div class="hiw-stage">
+      <svg class="hiw-svg" [attr.viewBox]="frame().vb" role="img" [attr.aria-label]="caption()">
+        @for (f of frame().frames; track f.key) {
+          <rect
+            [attr.x]="f.x"
+            [attr.y]="f.y"
+            [attr.width]="f.w"
+            [attr.height]="f.h"
+            rx="12"
+            [attr.fill]="f.fill"
+            [attr.stroke]="f.stroke"
+            stroke-width="1"
+            [attr.stroke-dasharray]="f.dash"
+          />
+        }
+        @for (e of frame().edges; track e.d) {
+          <path
+            [attr.d]="e.d"
+            fill="none"
+            [attr.stroke]="e.stroke"
+            [attr.stroke-width]="e.width"
+            [attr.stroke-dasharray]="e.dash"
+            stroke-linecap="round"
+          />
+        }
+        @for (nd of frame().nodes; track nd.id) {
+          <rect
+            [attr.data-node]="nd.id"
+            [attr.x]="nd.x"
+            [attr.y]="nd.y"
+            [attr.width]="nd.w"
+            [attr.height]="nd.h"
+            [attr.rx]="nd.r"
+            [attr.fill]="nd.fill"
+            [attr.stroke]="nd.stroke"
+            stroke-width="1.5"
+            [attr.stroke-dasharray]="nd.dash"
+          />
+        }
+        @for (p of frame().packets; track $index) {
+          <rect
+            [attr.x]="p.x"
+            [attr.y]="p.y"
+            [attr.width]="p.w"
+            height="22"
+            rx="11"
+            [attr.fill]="p.fill"
+            [attr.stroke]="p.stroke"
+            stroke-width="1.5"
+            [attr.opacity]="p.op"
+          />
+        }
+        @for (fr of frame().frags; track $index) {
+          <rect
+            [attr.x]="fr.x"
+            [attr.y]="fr.y"
+            width="12"
+            height="8"
+            rx="1.5"
+            fill="#ffffff"
+            [attr.stroke]="fr.color"
+            stroke-width="1.5"
+            [attr.opacity]="fr.op"
+            [attr.transform]="'rotate(' + fr.rot + ' ' + fr.cx + ' ' + fr.cy + ')'"
+          />
+        }
+        @for (tx of frame().texts; track $index) {
+          <text
+            [attr.x]="tx.x"
+            [attr.y]="tx.y"
+            [attr.text-anchor]="tx.anchor ?? 'middle'"
+            [attr.font-size]="tx.size"
+            [attr.font-weight]="tx.weight ?? null"
+            [attr.letter-spacing]="tx.ls ?? null"
+            [attr.fill]="tx.fill"
+            [attr.opacity]="tx.op ?? null"
+            [attr.text-decoration]="tx.deco ?? null"
+          >
+            {{ tx.text }}
+          </text>
+        }
+      </svg>
+    </div>
+
+    <app-player [timeline]="timeline" [caption]="caption()" [lang]="lang()" />
+
+    <div class="hiw-details">
+      <button
+        type="button"
+        class="hiw-details-toggle"
+        [attr.aria-expanded]="open()"
+        (click)="open.set(!open())"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+        {{ open() ? t().hideDetails : t().details }}
+      </button>
+      @if (open()) {
+        <div class="hiw-log">
+          <span class="hiw-mini">{{ t().log }}</span>
+          @for (l of frame().log; track $index) {
+            <div class="row" [class.done]="l.done">
+              <span>{{ l.t }}</span>
+              <span>{{ l.text }}</span>
+            </div>
+          }
+        </div>
+        <pre class="hiw-pre">{{ code }}</pre>
+      }
+    </div>
+  </figure>
+</section>

@@ -1,0 +1,62 @@
+<article class="hiw" #root>
+  <div class="hiw-top">
+    <div class="hiw-top-title">
+      <span class="hiw-top-kicker">{{ text.kicker }}</span>
+      <span class="hiw-top-sep" aria-hidden="true"></span>
+      <span class="hiw-top-sub">{{ text.subtitle }}</span>
+    </div>
+    <nav class="hiw-langs" [attr.aria-label]="text.langLabel">
+      <a routerLink="/how-it-works" lang="en" [attr.aria-current]="lang === 'en' ? 'page' : null"
+        >EN</a
+      >
+      <a
+        routerLink="/how-it-works/zh"
+        lang="zh-Hant"
+        [attr.aria-current]="lang === 'zh' ? 'page' : null"
+        >中文</a
+      >
+    </nav>
+  </div>
+
+  <section class="hiw-hero">
+    <div class="hiw-hero-text">
+      <span class="hiw-kicker">{{ text.fig0 }}</span>
+      <h2 class="hiw-title">{{ text.title }}</h2>
+      <p class="hiw-lede">{{ text.lede }}</p>
+    </div>
+    <figure class="hiw-fig">
+      <div class="hiw-stage">
+        <app-hero-map [lang]="lang" (go)="goTo($event)" />
+      </div>
+      <figcaption>
+        <span class="hiw-fig-label">{{ text.figLabel0 }}</span>
+        <span>{{ text.mapHint }}</span>
+      </figcaption>
+    </figure>
+
+    <nav class="hiw-index" [attr.aria-label]="text.chapters">
+      @for (item of index; track item.id) {
+        <a routerLink="." [fragment]="item.id">
+          <span class="n">
+            {{ item.n }}
+            @if (item.concept) {
+              <span class="hiw-concept-inline">{{ text.conceptShort }}</span>
+            }
+          </span>
+          <span class="q">{{ item.q }}</span>
+        </a>
+      }
+    </nav>
+  </section>
+
+  <app-chapter-pricing id="pricing" [lang]="lang" />
+  <app-chapter-signals id="signals" [lang]="lang" />
+  <app-chapter-network id="network" [lang]="lang" />
+  <app-chapter-agent id="agent" [lang]="lang" />
+
+  <footer class="hiw-footer">
+    <a routerLink="/">{{ text.back }}</a>
+    <a [href]="text.notesHref">{{ text.notes }}</a>
+    <a href="https://github.com/shueny/angular-rate-calendar">{{ text.source }}</a>
+  </footer>
+</article>

@@ -1,6 +1,12 @@
 <header class="app-header">
   <h1>{{ title }}</h1>
   <p class="subtitle">Dynamic Hotel Rate Calculator</p>
+  <nav class="app-nav" aria-label="Main">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      Calendar
+    </a>
+    <a class="how-link" routerLink="/how-it-works" routerLinkActive="active">How it works</a>
+  </nav>
   <p class="learning">
     Learning notes:
     <a class="learning-link-en" href="learning/en/" lang="en">From React to Angular</a>

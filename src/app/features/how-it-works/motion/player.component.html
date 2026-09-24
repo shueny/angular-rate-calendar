@@ -1,0 +1,113 @@
+<div class="head">
+  <div class="cap">
+    <span class="step">{{ view().step }}</span>
+    <span class="text" aria-live="polite">{{ caption() }}</span>
+  </div>
+  <span class="time">{{ view().time }}</span>
+</div>
+<div class="controls">
+  <button
+    type="button"
+    class="play"
+    [attr.aria-label]="
+      view().state === 'pause' ? t().pause : view().state === 'replay' ? t().replay : t().play
+    "
+    (click)="toggle()"
+  >
+    @switch (view().state) {
+      @case ('pause') {
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <rect x="6" y="4" width="4" height="16" rx="1" />
+          <rect x="14" y="4" width="4" height="16" rx="1" />
+        </svg>
+      }
+      @case ('replay') {
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+      }
+      @default {
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <polygon points="7 4 20 12 7 20 7 4" />
+        </svg>
+      }
+    }
+  </button>
+  <button
+    type="button"
+    class="nav back"
+    [attr.aria-label]="t().stepBack"
+    (click)="timeline().back()"
+  >
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <polygon points="19 20 9 12 19 4 19 20" />
+      <line x1="5" x2="5" y1="19" y2="5" />
+    </svg>
+  </button>
+  <button
+    type="button"
+    class="nav fwd"
+    [attr.aria-label]="t().stepForward"
+    (click)="timeline().forward()"
+  >
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <polygon points="5 4 15 12 5 20 5 4" />
+      <line x1="19" x2="19" y1="5" y2="19" />
+    </svg>
+  </button>
+  <div
+    class="scrub"
+    role="slider"
+    tabindex="0"
+    [attr.aria-label]="t().timeline"
+    aria-valuemin="0"
+    [attr.aria-valuemax]="view().total"
+    [attr.aria-valuenow]="view().frame"
+    (pointerdown)="scrubStart($event)"
+    (pointermove)="scrubMove($event)"
+    (keydown)="onKey($event)"
+  >
+    <i class="rail"></i>
+    <i class="fill" [style.width.%]="view().pct"></i>
+    @for (tick of view().ticks; track $index) {
+      <i class="tick" [class.passed]="tick.passed" [style.left.%]="tick.left"></i>
+    }
+    <i class="knob" [style.left.%]="view().pct"></i>
+  </div>
+  <div class="speeds" role="group" [attr.aria-label]="t().speed">
+    @for (s of speeds; track s) {
+      <button
+        type="button"
+        [attr.aria-pressed]="timeline().speed() === s"
+        (click)="timeline().speed.set(s)"
+      >
+        {{ s }}×
+      </button>
+    }
+  </div>
+</div>

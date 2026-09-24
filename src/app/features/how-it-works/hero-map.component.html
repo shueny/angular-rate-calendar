@@ -1,0 +1,70 @@
+<svg class="hiw-svg" [attr.viewBox]="view().vb" role="group" [attr.aria-label]="label()">
+  @for (e of view().edges; track e.d) {
+    <path
+      [attr.d]="e.d"
+      fill="none"
+      [attr.stroke]="e.stroke"
+      [attr.stroke-width]="e.width"
+      stroke-linecap="round"
+    />
+    @for (p of e.pulses; track $index) {
+      <path
+        class="pulse"
+        [attr.d]="e.d"
+        pathLength="100"
+        fill="none"
+        stroke="#1976d2"
+        stroke-width="3.5"
+        stroke-linecap="round"
+        stroke-dasharray="8 100"
+        [attr.stroke-dashoffset]="p.offset"
+        [attr.opacity]="p.op"
+        [style.animation-name]="p.anim"
+        [style.animation-delay]="p.delay"
+        [style.animation-direction]="p.dir"
+      />
+    }
+  }
+  @for (n of view().nodes; track n.id) {
+    <g
+      class="map-node"
+      role="link"
+      tabindex="0"
+      [attr.data-node]="n.id"
+      [attr.aria-label]="n.name"
+      [attr.opacity]="n.op"
+      (mouseenter)="hover.set(n.id)"
+      (mouseleave)="hover.set(null)"
+      (focus)="hover.set(n.id)"
+      (blur)="hover.set(null)"
+      (click)="go.emit(n.chapter)"
+      (keydown.enter)="go.emit(n.chapter)"
+    >
+      <rect
+        [attr.x]="n.x"
+        [attr.y]="n.y"
+        [attr.width]="n.w"
+        [attr.height]="n.h"
+        rx="8"
+        [attr.fill]="n.fill"
+        [attr.stroke]="n.stroke"
+        [attr.stroke-width]="n.strokeWidth"
+        [attr.stroke-dasharray]="n.dash"
+      />
+    </g>
+  }
+  @for (tx of view().texts; track $index) {
+    <text
+      [attr.x]="tx.x"
+      [attr.y]="tx.y"
+      [attr.text-anchor]="tx.anchor ?? 'middle'"
+      [attr.font-size]="tx.size"
+      [attr.font-weight]="tx.weight ?? null"
+      [attr.letter-spacing]="tx.ls ?? null"
+      [attr.fill]="tx.fill"
+      [attr.opacity]="tx.op ?? null"
+    >
+      {{ tx.text }}
+    </text>
+  }
+</svg>

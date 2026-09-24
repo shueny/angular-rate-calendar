@@ -1,0 +1,231 @@
+/* Figure primitives shared by every chapter (unencapsulated, scoped by the .hiw- prefix). */
+.hiw-fig {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--hiw-line);
+  border-radius: 12px;
+  background: #fff;
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--hiw-line);
+    color: var(--hiw-muted);
+    font-size: 13px;
+  }
+}
+
+.hiw-fig-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--hiw-line);
+}
+
+.hiw-fig-label {
+  color: var(--hiw-ink);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.hiw-flow {
+  color: var(--hiw-muted);
+  font-size: 13px;
+}
+
+.hiw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hiw-chip {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid var(--hiw-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--hiw-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &[aria-pressed='true'] {
+    border-color: var(--hiw-ink);
+    background: var(--hiw-ink);
+    color: #fff;
+  }
+}
+
+.hiw-stage {
+  padding: 24px;
+  background: var(--hiw-stage);
+
+  @media (max-width: 640px) {
+    padding: 12px 8px;
+  }
+}
+
+.hiw-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--hiw-mono);
+
+  text {
+    pointer-events: none;
+  }
+
+  .sans {
+    font-family:
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+
+  .halo {
+    paint-order: stroke;
+    stroke: var(--hiw-stage);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  .pulse {
+    animation-duration: 4s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .map-node {
+    cursor: pointer;
+    outline: none;
+
+    &:focus-visible rect {
+      stroke-width: 3px;
+    }
+  }
+}
+
+.hiw-sliders {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 20px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--hiw-line);
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.hiw-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+
+  input {
+    width: 100%;
+    margin: 0;
+    accent-color: var(--hiw-accent);
+  }
+}
+
+.hiw-slider-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--hiw-muted);
+  font-family: var(--hiw-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  b {
+    color: var(--hiw-ink);
+  }
+}
+
+.hiw-mini {
+  color: var(--hiw-muted);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+
+  &.strong {
+    color: var(--hiw-ink);
+    font-weight: 600;
+  }
+}
+
+.hiw-details {
+  padding: 10px 16px;
+  border-top: 1px solid var(--hiw-line);
+}
+
+.hiw-details-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--hiw-accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  svg {
+    transition: transform 150ms ease-out;
+  }
+
+  &[aria-expanded='true'] svg {
+    transform: rotate(90deg);
+  }
+}
+
+.hiw-pre,
+.hiw-log {
+  margin: 8px 0 0;
+  padding: 12px;
+  border: 1px solid var(--hiw-line);
+  border-radius: 8px;
+  background: var(--hiw-paper);
+  font-family: var(--hiw-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.hiw-pre {
+  white-space: pre-wrap;
+}
+
+.hiw-log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 10px;
+    opacity: 0.4;
+
+    &.done {
+      opacity: 1;
+    }
+
+    span:first-child {
+      color: var(--hiw-accent);
+    }
+  }
+}

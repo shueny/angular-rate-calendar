@@ -23,6 +23,19 @@ describe('AppComponent', () => {
     expect(en.textContent).toContain('From React to Angular');
   });
 
+  it('should link to the calendar and the How it works page', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    const links = [...fixture.nativeElement.querySelectorAll('.app-nav a')].map(
+      (a: HTMLAnchorElement) => [a.textContent?.trim(), a.getAttribute('href')],
+    );
+    expect(links).toEqual([
+      ['Calendar', '/'],
+      ['How it works', '/how-it-works'],
+    ]);
+  });
+
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
