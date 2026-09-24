@@ -25,6 +25,9 @@ jobs:
           cache: npm
       - run: npm ci --legacy-peer-deps
       - run: npx ng build --base-href /angular-rate-calendar/
+      # GitHub Pages has no SPA fallback; serving index.html as 404.html lets
+      # deep links like /how-it-works load the app, which then routes them.
+      - run: cp dist/angular-rate-calendar/browser/index.html dist/angular-rate-calendar/browser/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist/angular-rate-calendar/browser

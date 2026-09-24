@@ -1,0 +1,155 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+
+  output {
+    font-family: var(--hiw-mono);
+    min-width: 3rem;
+  }
+}
+
+.graph {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 16px 0 4px;
+}
+
+.edge {
+  fill: none;
+  stroke: var(--hiw-line);
+  stroke-width: 2;
+  transition: stroke 0.3s;
+
+  &.lit {
+    stroke: var(--hiw-accent);
+  }
+}
+
+.node {
+  rect {
+    fill: var(--hiw-card);
+    stroke: var(--hiw-muted);
+    stroke-width: 1.5;
+    transition:
+      fill 0.3s,
+      stroke 0.3s;
+  }
+
+  &.computed rect {
+    stroke-dasharray: 5 3;
+  }
+
+  text {
+    font-family: var(--hiw-mono);
+    fill: var(--hiw-ink);
+  }
+
+  .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .kind,
+  .count {
+    font-size: 11px;
+    fill: var(--hiw-muted);
+  }
+
+  &.lit {
+    rect {
+      fill: var(--hiw-accent-soft);
+      stroke: var(--hiw-accent);
+    }
+
+    .count {
+      fill: var(--hiw-accent);
+      font-weight: 700;
+    }
+  }
+}
+
+.report {
+  min-height: 3em;
+  font-size: 0.85rem;
+}
+
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.wd {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--hiw-muted);
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0;
+  border: 1px solid var(--hiw-line);
+  border-radius: 6px;
+  background: var(--hiw-card);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  .d {
+    font-size: 0.72rem;
+    color: var(--hiw-muted);
+  }
+
+  .p {
+    font-family: var(--hiw-mono);
+    font-size: 0.75rem;
+  }
+
+  &.weekend {
+    background: var(--hiw-paper);
+  }
+
+  &.holiday .d {
+    color: var(--hiw-bad);
+    font-weight: 700;
+  }
+
+  &.changed {
+    animation: flash 1.2s ease-out;
+  }
+
+  &[aria-pressed='true'] {
+    outline: 2px solid var(--hiw-ink);
+    outline-offset: -1px;
+  }
+}
+
+@keyframes flash {
+  from {
+    background: var(--hiw-accent-soft);
+    border-color: var(--hiw-accent);
+  }
+}
+
+.detail {
+  font-size: 0.9rem;
+
+  .hint {
+    display: block;
+    color: var(--hiw-muted);
+    font-size: 0.78rem;
+  }
+}

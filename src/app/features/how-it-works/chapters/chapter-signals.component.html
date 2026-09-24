@@ -1,0 +1,117 @@
+<section class="hiw-chapter" aria-labelledby="signals-title">
+  <header class="hiw-chapter-head">
+    <p class="hiw-num">02</p>
+    <h3 id="signals-title">{{ t().title }}</h3>
+    <p>{{ t().intro }}</p>
+  </header>
+
+  <figure class="hiw-fig">
+    <div class="toolbar">
+      <div class="control">
+        <label for="sig-base">{{ t().base }}</label>
+        <input
+          id="sig-base"
+          type="range"
+          min="50"
+          max="300"
+          step="10"
+          [value]="engine.config().baseRate"
+          (input)="setBase($event)"
+        />
+        <output for="sig-base">{{
+          engine.config().baseRate | currency: 'USD' : 'symbol' : '1.0-0'
+        }}</output>
+      </div>
+      <div class="hiw-chips" role="group" [attr.aria-label]="t().country">
+        <span class="hiw-label">{{ t().country }}</span>
+        @for (c of countries; track c) {
+          <button
+            type="button"
+            class="hiw-btn country"
+            [attr.aria-pressed]="holidays.countryCode() === c"
+            (click)="setCountry(c)"
+          >
+            {{ c }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <svg class="graph" viewBox="0 0 640 250" role="img" [attr.aria-label]="t().graphLabel">
+      @for (e of edges; track e.d) {
+        <path class="edge" [class.lit]="lit().has(e.from) && lit().has(e.to)" [attr.d]="e.d" />
+      }
+      @for (n of nodes; track n.id) {
+        <g
+          class="node"
+          [attr.data-node]="n.id"
+          [class.lit]="lit().has(n.id)"
+          [class.computed]="n.kind === 'computed'"
+          [attr.transform]="'translate(' + n.x + ',' + n.y + ')'"
+        >
+          <title>{{ n.id }}: {{ t().runs(counts()[n.id]) }}</title>
+          <rect [attr.width]="nodeW" [attr.height]="nodeH" rx="10" />
+          <text x="12" y="21" class="name">{{ n.id }}</text>
+          <text x="12" y="39" class="kind">
+            {{ n.kind === 'signal' ? t().signal : t().computed }}
+          </text>
+          <text [attr.x]="nodeW - 12" y="21" text-anchor="end" class="count">
+            ×{{ counts()[n.id] }}
+          </text>
+        </g>
+      }
+    </svg>
+
+    <p class="report" aria-live="polite">
+      @if (holidays.loading()) {
+        {{ t().loading }}
+      } @else {
+        @if (report(); as r) {
+          <strong>{{ t().reran }}:</strong> {{ r.reran.join(', ') || '—' }} ·
+          <strong>{{ t().untouched }}:</strong> {{ r.untouched.join(', ') || '—' }} ·
+          <span class="changed-count">{{ t().changed(r.changed, days().length) }}</span>
+        } @else {
+          {{ t().idle }}
+        }
+      }
+    </p>
+
+    <div class="cal">
+      @for (w of t().weekdays; track $index) {
+        <span class="wd">{{ w }}</span>
+      }
+      @for (b of leadingBlanks; track b) {
+        <span></span>
+      }
+      @for (cell of days(); track flashKey() + '-' + cell.day) {
+        <button
+          type="button"
+          class="cell"
+          [class.weekend]="cell.weekend"
+          [class.holiday]="cell.holiday"
+          [class.changed]="changedDays().has(cell.day)"
+          [attr.aria-pressed]="isSelected(cell.day)"
+          [attr.aria-label]="formatDay(cell.day) + ' ' + (cell.holiday ?? '') + ' $' + cell.price"
+          (click)="select(cell.day)"
+        >
+          <span class="d">{{ cell.day }}</span>
+          <span class="p">{{ cell.price | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+        </button>
+      }
+    </div>
+
+    <p class="detail">
+      <span class="hiw-label">{{ t().selected }}</span>
+      {{ formatDay(selectedDate().getDate()) }}
+      @if (holidays.getHolidayName(selectedDate()); as name) {
+        · {{ name }}
+      }
+      · <strong>{{ detail().finalRate | currency: 'USD' }}</strong>
+      <span class="hint">{{ t().pickDay }}</span>
+    </p>
+
+    <figcaption>{{ t().caption }} {{ t().footnote }}</figcaption>
+  </figure>
+
+  <p class="hiw-takeaway">{{ t().takeaway }}</p>
+</section>

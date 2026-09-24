@@ -14,6 +14,25 @@
     font-size: 0.95rem;
   }
 
+  .app-nav {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 12px 0 0;
+
+    a {
+      padding: 2px 0;
+      border-bottom: 2px solid transparent;
+      color: #444;
+      text-decoration: none;
+
+      &.active {
+        border-bottom-color: #1976d2;
+        color: #1976d2;
+      }
+    }
+  }
+
   .learning {
     margin: 8px 0 0;
     font-size: 0.9rem;

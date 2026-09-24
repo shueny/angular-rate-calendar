@@ -1,0 +1,44 @@
+<article class="hiw">
+  <header class="hiw-hero">
+    <nav class="hiw-langs" [attr.aria-label]="text.page.langLabel">
+      <a routerLink="/how-it-works" lang="en" [attr.aria-current]="lang === 'en' ? 'page' : null">
+        English
+      </a>
+      <a
+        routerLink="/how-it-works/zh"
+        lang="zh-Hant"
+        [attr.aria-current]="lang === 'zh' ? 'page' : null"
+      >
+        中文
+      </a>
+    </nav>
+    <p class="hiw-label">{{ text.page.kicker }}</p>
+    <h2 class="hiw-title">{{ text.page.title }}</h2>
+    <p class="hiw-lede">{{ text.page.lede }}</p>
+    <p class="hiw-note">{{ text.page.note }}</p>
+
+    <nav class="hiw-toc" [attr.aria-label]="text.page.contents">
+      <p class="hiw-label">{{ text.page.contents }}</p>
+      <ol>
+        @for (c of chapters; track c.id) {
+          <li>
+            <a routerLink="." [fragment]="c.id">
+              <span class="hiw-num">{{ c.num }}</span>
+              {{ c.title }}
+            </a>
+          </li>
+        }
+      </ol>
+    </nav>
+  </header>
+
+  <app-chapter-pricing id="pricing" [lang]="lang" />
+  <app-chapter-signals id="signals" [lang]="lang" />
+  <app-chapter-network id="network" [lang]="lang" />
+
+  <footer class="hiw-footer">
+    <a routerLink="/">{{ text.page.back }}</a>
+    <a [href]="text.page.notesHref">{{ text.page.notes }}</a>
+    <a href="https://github.com/shueny/angular-rate-calendar">{{ text.page.source }}</a>
+  </footer>
+</article>

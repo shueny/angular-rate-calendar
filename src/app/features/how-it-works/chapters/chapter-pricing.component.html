@@ -1,0 +1,89 @@
+<section class="hiw-chapter" aria-labelledby="pricing-title">
+  <header class="hiw-chapter-head">
+    <p class="hiw-num">01</p>
+    <h3 id="pricing-title">{{ t().title }}</h3>
+    <p>{{ t().intro }}</p>
+  </header>
+
+  <figure class="hiw-fig">
+    <p class="hiw-label">{{ t().pickDay }}</p>
+    <div class="hiw-chips" role="group" [attr.aria-label]="t().pickDay">
+      @for (p of presets; track p.id) {
+        <button
+          type="button"
+          class="hiw-btn preset"
+          [attr.aria-pressed]="p.id === preset().id"
+          (click)="pick(p)"
+        >
+          <span>{{ formatDate(p.date) }}</span>
+          <small>{{ t().tags[p.tag] }}</small>
+        </button>
+      }
+    </div>
+
+    <div class="body">
+      <ol class="pipeline" #pipeline>
+        <li class="step base">
+          <span>{{ t().base }}</span>
+          <strong>{{ result().baseRate | currency: 'USD' }}</strong>
+        </li>
+        @for (s of steps(); track s.name) {
+          <li
+            class="step rule"
+            [class.applied]="s.adjustment"
+            [style.animation-delay.ms]="($index + 1) * 350"
+          >
+            <div class="rule-head">
+              <strong>{{ s.name }}</strong>
+              @if (s.adjustment) {
+                <span class="out"
+                  >×{{ s.adjustment.multiplier }} → {{ s.total | currency: 'USD' }}</span
+                >
+              } @else {
+                <span class="out">{{ t().skipped }}</span>
+              }
+            </div>
+            <code class="hiw-code" [title]="s.file">{{ s.guard }}</code>
+          </li>
+        }
+        <li class="step final" [style.animation-delay.ms]="(steps().length + 1) * 350">
+          <span>{{ t().final }}</span>
+          <strong>{{ result().finalRate | currency: 'USD' }}</strong>
+        </li>
+      </ol>
+
+      <div class="side">
+        <p class="hiw-label">{{ t().contextTitle }}</p>
+        <code class="hiw-code context">
+          <span>{{ '{' }}</span>
+          @for (line of context(); track line) {
+            <span class="indent">{{ line }},</span>
+          }
+          <span>{{ '}' }}</span>
+        </code>
+
+        <p class="hiw-label">{{ t().tune }}</p>
+        @for (c of controls; track c.key) {
+          <div class="control">
+            <label [for]="'pr-' + c.key">{{ t().controls[c.key] }}</label>
+            <input
+              type="range"
+              [id]="'pr-' + c.key"
+              [min]="c.min"
+              [max]="c.max"
+              [step]="c.step"
+              [value]="engine.config()[c.key]"
+              (input)="setConfig(c.key, $event)"
+            />
+            <output [for]="'pr-' + c.key">{{ engine.config()[c.key] }}</output>
+          </div>
+        }
+        <button type="button" class="hiw-btn" (click)="replay()">↻ {{ t().replay }}</button>
+      </div>
+    </div>
+
+    <figcaption>{{ t().caption }}</figcaption>
+  </figure>
+
+  <p class="hiw-takeaway">{{ t().takeaway }}</p>
+</section>
